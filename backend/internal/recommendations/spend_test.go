@@ -14,7 +14,7 @@ func TestAssessSpendRequirement(t *testing.T) {
 		wantAchievable                   bool
 	}{
 		{
-			name:                    "easy when projected spend is at least 125 percent of minimum spend",
+			name:                    "easy when projected spend is at least 150 percent of minimum spend",
 			monthlySpendCents:       250000,
 			minimumSpendCents:       500000,
 			spendWindowDays:         90,
@@ -23,25 +23,25 @@ func TestAssessSpendRequirement(t *testing.T) {
 			wantAchievable:          true,
 		},
 		{
-			name:                    "achievable when projected spend meets minimum spend",
-			monthlySpendCents:       100000,
+			name:                    "achievable when projected spend has a small buffer above minimum spend",
+			monthlySpendCents:       110000,
 			minimumSpendCents:       300000,
 			spendWindowDays:         90,
-			wantProjectedSpendCents: 300000,
+			wantProjectedSpendCents: 330000,
 			wantDifficulty:          SpendDifficultyAchievable,
 			wantAchievable:          true,
 		},
 		{
-			name:                    "tight when projected spend is at least 75 percent of minimum spend",
-			monthlySpendCents:       80000,
+			name:                    "tight when projected spend is at least 85 percent of minimum spend",
+			monthlySpendCents:       85000,
 			minimumSpendCents:       300000,
 			spendWindowDays:         90,
-			wantProjectedSpendCents: 240000,
+			wantProjectedSpendCents: 255000,
 			wantDifficulty:          SpendDifficultyTight,
 			wantAchievable:          true,
 		},
 		{
-			name:                    "unlikely when projected spend is below 75 percent of minimum spend",
+			name:                    "unlikely when projected spend is below 85 percent of minimum spend",
 			monthlySpendCents:       70000,
 			minimumSpendCents:       300000,
 			spendWindowDays:         90,
@@ -56,7 +56,21 @@ func TestAssessSpendRequirement(t *testing.T) {
 			minimumSpendCents:                500000,
 			spendWindowDays:                  90,
 			wantProjectedSpendCents:          700000,
-			wantDifficulty:                   SpendDifficultyEasy,
+			wantDifficulty:                   SpendDifficultyAchievable,
+			wantAchievable:                   true,
+		},
+		{
+			// 90-day large purchases should not be credited in full to a
+			// 30-day spend window. $9,000 over 90 days = $3,000 prorated to
+			// 30 days, on top of $3,000 monthly spend = $6,000 projected
+			// against a $5,000 minimum (achievable, not easy).
+			name:                             "large purchases are prorated to a shorter spend window",
+			monthlySpendCents:                300000,
+			expectedLargePurchases90DayCents: 900000,
+			minimumSpendCents:                500000,
+			spendWindowDays:                  30,
+			wantProjectedSpendCents:          600000,
+			wantDifficulty:                   SpendDifficultyAchievable,
 			wantAchievable:                   true,
 		},
 		{

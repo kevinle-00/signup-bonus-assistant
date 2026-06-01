@@ -383,7 +383,7 @@ Suggested steps:
 
 Fields:
 
-- optimizationGoal
+- optimisationGoal
   - max_net_value
   - qantas_points
   - velocity_points
@@ -621,7 +621,7 @@ Request:
 
 ```json
 {
-  "optimizationGoal": "qantas_points",
+  "optimisationGoal": "qantas_points",
   "monthlySpendCents": 250000,
   "expectedLargePurchasesNext90DaysCents": 100000,
   "spendingCategories": ["groceries", "dining", "bills"],
@@ -977,13 +977,14 @@ Example eligibility rules in JSONB:
 ```json
 [
   {
-    "type": "not_current_cardholder",
-    "description": "Offer may not be available to current cardholders."
+    "type": "not_held_recently",
+    "windowDays": 730,
+    "description": "Offer may not be available if you held this issuer's rewards cards in the last 24 months."
   },
   {
-    "type": "not_held_same_card_recently",
+    "type": "new_amex_card_members_only",
     "windowDays": 540,
-    "description": "Offer may not be available if you held this card in the last 18 months."
+    "description": "Offer applies to new American Express Card Members only."
   },
   {
     "type": "manual_review",
@@ -991,6 +992,8 @@ Example eligibility rules in JSONB:
   }
 ]
 ```
+
+Eligibility rules should be curated as structured data in `data/card_offers_curated.yaml`, then passed through to SQL JSONB. Do not infer rule types from legal text inside the application path; if a rule is ambiguous, encode it as `manual_review` and surface a warning.
 
 ### 13.2 Spend achievability
 
@@ -1000,10 +1003,11 @@ For each offer:
 
 ```text
 spendWindowMonths = ceil(spendWindowDays / 30)
-projectedSpend = monthlySpendCents × spendWindowMonths + expectedLargePurchasesNext90DaysCents
+proratedLargePurchases = expectedLargePurchasesNext90DaysCents × min(spendWindowDays, 90) / 90
+projectedSpend = monthlySpendCents × spendWindowMonths + proratedLargePurchases
 ```
 
-`expectedLargePurchasesNext90DaysCents` represents purchases the user expects to make within the next three months. For non-standard spend windows, keep the same field but include a warning that the estimate is approximate.
+`expectedLargePurchasesNext90DaysCents` represents purchases the user expects to make within the next three months. Prorate it to shorter offer windows so a 90-day large-purchase estimate is not fully credited against a 14- or 30-day spend window. Cap the proration at 90 days because the user did not provide a large-purchase forecast beyond that period.
 
 Then compare:
 
@@ -1013,10 +1017,12 @@ projectedSpend / minimumSpend
 
 Suggested difficulty thresholds:
 
-- >= 1.25: easy
-- >= 1.0: achievable
-- >= 0.75: tight
-- < 0.75: unlikely
+- >= 1.50: easy
+- >= 1.10: achievable
+- >= 0.85: tight
+- < 0.85: unlikely
+
+These thresholds are intentionally conservative. Most Australian issuers exclude categories such as government payments, BPAY, ATO payments, gift cards, balance transfers, and refunds from minimum-spend calculations. A projection that only just clears the stated minimum can still miss the bonus in practice.
 
 Type:
 
@@ -1093,19 +1099,21 @@ Do not rank only by net estimated value. Ranking should balance value with pract
 Suggested scoring out of 100:
 
 ```text
-score = valueScore + spendScore + goalScore + eligibilityScore + urgencyScore + annualFeeComfortScore - penaltyScore
+weightedScore = valueScore + spendScore + goalScore + eligibilityScore + annualFeeComfortScore
+score = clamp(weightedScore + urgencyTiebreakerBonus, 0, 100)
 ```
 
-Suggested weights:
+Weights for each optimisation goal should sum to 100 so the weighted portion of the score reads as a clear percentage. Default weights:
 
-- Value score: 40 points
+- Value score: 45 points
 - Spend achievability: 20 points
 - Reward goal match: 15 points
 - Eligibility confidence: 15 points
-- Offer urgency: 5 points
 - Annual fee comfort: 5 points
 
-`optimizationGoal` should adjust these weights while keeping the scoring logic hardcoded and easy to inspect:
+Offer urgency is intentionally **not** a weighted axis. A soon-to-expire mediocre offer should not outrank a stronger, longer-window offer. Urgency is instead applied as a small post-hoc bonus capped at roughly 3 points so it only changes the ordering of cards whose underlying recommendation quality is already similar.
+
+`optimisationGoal` should adjust these weights while keeping the scoring logic hardcoded and easy to inspect:
 
 - `max_net_value`: prioritise net estimated value.
 - `qantas_points`: boost Qantas reward-program matches.
@@ -1149,6 +1157,10 @@ Example reason generation:
 - If spend easy: “Your projected spend appears comfortably above the minimum spend requirement.”
 - If reward match: “The reward program matches your selected goal.”
 - If medium confidence: “Some eligibility terms may require manual review before applying.”
+
+#### Score transparency
+
+The raw 0–100 score is not meaningful to a user on its own. The frontend should prefer rank + reasons over a bare score, and if a numeric score is shown it should be accompanied by the same component breakdown the scoring function uses (for example: `Value 38/45 · Spend 16/20 · Goal 15/15 · Eligibility 15/15 · Fee comfort 4/5`). The explanation sentences must stay aligned with the components that actually contributed to the score, so a user can always trace why one card outranked another.
 
 Optional enhancement:
 
@@ -1292,7 +1304,7 @@ Recommendation run snapshots should include only the fields needed to reproduce 
 
 - `monthlySpendCents`
 - `expectedLargePurchasesNext90DaysCents`
-- `optimizationGoal`
+- `optimisationGoal`
 - `annualFeePreference`
 - `maxAnnualFeeCents`
 - `acceptsAmex`
@@ -1555,7 +1567,7 @@ The recommendation engine must be deterministic and testable. It must evaluate:
 6. Estimated net value.
 7. Reward goal match.
 
-Supported MVP optimization goals:
+Supported MVP optimisation goals:
 
 - `max_net_value`
 - `qantas_points`
@@ -1588,7 +1600,7 @@ Spending categories may be collected during onboarding, but they should not be c
 - `monthlySpendCents`
 - `expectedLargePurchasesNext90DaysCents`
 
-Spending categories can be used for UX context or future personalization, but not detailed earn-rate calculations.
+Spending categories can be used for UX context or future personalisation, but not detailed earn-rate calculations.
 
 User-facing label for large purchases:
 
@@ -1617,7 +1629,7 @@ Store a reduced, non-identifying snapshot of each recommendation run. The snapsh
 
 - `monthlySpendCents`
 - `expectedLargePurchasesNext90DaysCents`
-- `optimizationGoal`
+- `optimisationGoal`
 - `annualFeePreference`
 - `maxAnnualFeeCents`
 - `acceptsAmex`
