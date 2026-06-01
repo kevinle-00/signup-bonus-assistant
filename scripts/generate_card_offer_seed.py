@@ -53,9 +53,10 @@ COLUMNS = [
 ]
 
 
-def sql_string(value: str | None) -> str:
+def sql_string(value: Any) -> str:
     if value is None:
         return "NULL"
+    value = str(value)
     return "'" + value.replace("'", "''") + "'"
 
 
