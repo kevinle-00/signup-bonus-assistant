@@ -48,11 +48,16 @@ jobs:
         working-directory: backend
         run: go build ./...
 
+      - name: Install Python dev dependencies
+        run: |
+          python3 -m venv .venv
+          .venv/bin/python -m pip install -r requirements-dev.txt
+
       - name: Check seed generator syntax
-        run: python3 -m py_compile scripts/generate_card_offer_seed.py
+        run: .venv/bin/python -m py_compile scripts/generate_card_offer_seed.py
 
       - name: Regenerate seed SQL
-        run: python3 scripts/generate_card_offer_seed.py
+        run: .venv/bin/python scripts/generate_card_offer_seed.py
 
       - name: Check generated seed is committed
         run: |

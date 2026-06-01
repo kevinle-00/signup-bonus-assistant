@@ -52,5 +52,7 @@ psql "$DATABASE_URL" -f backend/seed/card_offers_seed.sql
 Regenerate seed SQL from the curated YAML source:
 
 ```sh
-python3 scripts/generate_card_offer_seed.py
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python scripts/generate_card_offer_seed.py
 ```

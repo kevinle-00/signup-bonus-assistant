@@ -8,10 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-try:
-    import yaml
-except ImportError:
-    yaml = None
+import yaml
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -60,63 +57,9 @@ def sql_string(value: Any) -> str:
     return "'" + value.replace("'", "''") + "'"
 
 
-def parse_scalar(value: str) -> Any:
-    if value == "null":
-        return None
-    if value == "true":
-        return True
-    if value == "false":
-        return False
-    try:
-        return int(value)
-    except ValueError:
-        return value
-
-
 def load_curated_yaml() -> dict[str, Any]:
-    if yaml is not None:
-        with INPUT_PATH.open("r", encoding="utf-8") as source:
-            return yaml.safe_load(source)
-
-    offers: list[dict[str, Any]] = []
-    current_offer: dict[str, Any] | None = None
-    current_list_key: str | None = None
-
-    for raw_line in INPUT_PATH.read_text(encoding="utf-8").splitlines():
-        if not raw_line.strip():
-            continue
-        if raw_line.startswith("credit_card_signup_offers:"):
-            continue
-        if raw_line.startswith("  - "):
-            if current_offer is not None:
-                offers.append(current_offer)
-            current_offer = {}
-            current_list_key = None
-            key, value = raw_line[4:].split(": ", 1)
-            current_offer[key] = parse_scalar(value)
-            continue
-        if current_offer is None:
-            raise ValueError(f"Unexpected line before first offer: {raw_line}")
-        if raw_line.startswith("    ") and not raw_line.startswith("      - "):
-            current_list_key = None
-            stripped = raw_line.strip()
-            if stripped.endswith(":"):
-                current_list_key = stripped[:-1]
-                current_offer[current_list_key] = []
-                continue
-            key, value = stripped.split(": ", 1)
-            current_offer[key] = parse_scalar(value)
-            continue
-        if raw_line.startswith("      - "):
-            if current_list_key is None:
-                raise ValueError(f"List item without list key: {raw_line}")
-            current_offer[current_list_key].append(raw_line[8:])
-            continue
-        raise ValueError(f"Unsupported YAML line: {raw_line}")
-
-    if current_offer is not None:
-        offers.append(current_offer)
-    return {"credit_card_signup_offers": offers}
+    with INPUT_PATH.open("r", encoding="utf-8") as source:
+        return yaml.safe_load(source)
 
 
 def sql_date(value: str | None) -> str:
@@ -147,6 +90,12 @@ def infer_rule_type(note: str) -> str:
     return "manual_review"
 
 
+def note_to_string(note: Any) -> str:
+    if isinstance(note, dict):
+        return "; ".join(f"{key}: {value}" for key, value in note.items())
+    return str(note)
+
+
 def infer_window_days(note: str) -> int | None:
     lowered = note.lower()
     if "24 months" in lowered:
@@ -159,6 +108,7 @@ def infer_window_days(note: str) -> int | None:
 def eligibility_rules(notes: list[str]) -> list[dict[str, Any]]:
     rules = []
     for note in notes:
+        note = note_to_string(note)
         rule: dict[str, Any] = {
             "type": infer_rule_type(note),
             "description": note,
@@ -195,7 +145,7 @@ def sql_value(value: Any) -> str:
 def row_values(offer: dict[str, Any]) -> list[str]:
     data_quality = offer.get("data_quality") or "verified"
     rules = eligibility_rules(offer.get("eligibility_notes") or [])
-    terms = offer.get("terms_notes") or []
+    terms = [note_to_string(note) for note in offer.get("terms_notes") or []]
 
     values: dict[str, Any] = {
         "issuer": offer["issuer"],

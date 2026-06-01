@@ -29,6 +29,7 @@ coverage.out
 # Python tooling
 __pycache__/
 *.py[cod]
+.venv/
 
 # Local editor and tooling state
 .idea/
