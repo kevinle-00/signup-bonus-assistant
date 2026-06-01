@@ -1,5 +1,7 @@
 package recommendations
 
+import "time"
+
 type RewardType string
 
 const (
@@ -37,6 +39,18 @@ const (
 	OptimisationGoalLowEffort   OptimisationGoal = "low_effort"
 )
 
+type SpendingCategory string
+
+const (
+	SpendingCategoryGroceries      SpendingCategory = "groceries"
+	SpendingCategoryDining         SpendingCategory = "dining"
+	SpendingCategoryTravel         SpendingCategory = "travel"
+	SpendingCategoryBills          SpendingCategory = "bills"
+	SpendingCategoryOnlineShopping SpendingCategory = "online_shopping"
+	SpendingCategoryFuel           SpendingCategory = "fuel"
+	SpendingCategoryOther          SpendingCategory = "other"
+)
+
 type CardOffer struct {
 	ID                           string
 	Issuer                       string
@@ -64,10 +78,47 @@ type EligibilityRule struct {
 	WindowDays  *int
 }
 
+type RecommendationInput struct {
+	OptimisationGoal                      OptimisationGoal
+	MonthlySpendCents                     int
+	ExpectedLargePurchasesNext90DaysCents int
+	SpendingCategories                    []SpendingCategory
+	AnnualFeePreference                   AnnualFeePreference
+	MaxAnnualFeeCents                     int
+	AcceptsAmex                           bool
+	CardHistory                           []UserCardHistoryItem
+}
+
+type UserCardHistoryItem struct {
+	Issuer        string
+	CardName      string
+	OpenedAt      *time.Time
+	ClosedAt      *time.Time
+	CurrentlyHeld bool
+}
+
 type ValueBreakdown struct {
 	SignupBonusValueCents         int
 	RequiredSpendPointsValueCents int
 	TravelCreditValueCents        int
 	AnnualFeeCents                int
 	NetEstimatedValueCents        int
+}
+
+type SpendDifficulty string
+
+const (
+	SpendDifficultyEasy       SpendDifficulty = "easy"
+	SpendDifficultyAchievable SpendDifficulty = "achievable"
+	SpendDifficultyTight      SpendDifficulty = "tight"
+	SpendDifficultyUnlikely   SpendDifficulty = "unlikely"
+)
+
+type SpendRequirementResult struct {
+	MinimumSpendCents       int
+	SpendWindowDays         int
+	ProjectedUserSpendCents int
+	Achievable              bool
+	Difficulty              SpendDifficulty
+	Reason                  string
 }
