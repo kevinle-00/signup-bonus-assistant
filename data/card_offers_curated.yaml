@@ -20,8 +20,10 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card for over 15 months from activation
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Bonus offer is not available if you currently hold or have held an ANZ Frequent Flyer or ANZ Rewards credit card in the last 24 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: Bonus offer is not available if you currently hold or have held an ANZ Frequent Flyer or ANZ Rewards credit card in the last 24 months.
 
     terms_notes:
       - 130,000 bonus points and $100 cashback require $5,000 eligible spend in first 3 months from approval.
@@ -49,8 +51,10 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card for over 12 months
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Bonus points are not available to customers who currently hold, have held, or are transferring from any personal NAB Qantas Rewards Credit Card in the last 24 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: Bonus points are not available to customers who currently hold, have held, or are transferring from any personal NAB Qantas Rewards Credit Card in the last 24 months.
 
     terms_notes:
       - 100,000 bonus Qantas Points and $250 cashback require $5,000 everyday spend within first 90 days of account opening.
@@ -81,9 +85,10 @@ credit_card_signup_offers:
     later_bonus_condition: Spend $4,000 on eligible purchases within 90 days of card anniversary in year two
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Offer not available if you have held an Altitude Platinum or Altitude Black card with Altitude Rewards, Qantas, or Velocity in the last 24 months.
-      - New cards only.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: Offer not available if you have held an Altitude Platinum or Altitude Black card with Altitude Rewards, Qantas, or Velocity in the last 24 months. New cards only.
 
     terms_notes:
       - 70,000 bonus Velocity Points require $4,000 eligible spend within 90 days of new card approval.
@@ -115,10 +120,12 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Offer applies to new American Express Card Members only.
-      - Applicant must be 18 or over, an Australian citizen, permanent resident, or long-term visa holder, and have good credit history with no payment defaults.
-      - Offer is personalised and may change or be withdrawn at any time.
+    eligibility_rules:
+      - type: new_amex_card_members_only
+        window_days: 540
+        description: Offer applies to new American Express Card Members only; not available if you have held any American Express card in the last 18 months.
+      - type: manual_review
+        description: Offer is personalised and may change or be withdrawn at any time; verify the current bonus on the American Express site before applying.
 
     terms_notes:
       - 200,000 bonus Membership Rewards Points require $5,000 eligible spend on the new card within first 3 months after approval.
@@ -151,10 +158,12 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card for over 15 months from activation with Velocity auto-redemption enabled
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - New card only.
-      - Velocity offer requires switching on auto-redemption to transfer ANZ Reward Points to Velocity Frequent Flyer Points within 3 months from approval.
-      - Auto-redemption must be kept on until points for the relevant criteria have been made available for redemption.
+    eligibility_rules:
+      - type: new_cardholders_only
+        window_days: 365
+        description: New card only; not available if you have held an ANZ Rewards card in the last 12 months.
+      - type: manual_review
+        description: Velocity bonus requires switching on auto-redemption to transfer ANZ Reward Points to Velocity within 3 months from approval, and keeping it on until bonus points are credited.
 
     terms_notes:
       - 60,000 bonus Velocity Points and $50 cashback require $3,500 eligible spend within first 3 months from approval.
@@ -187,8 +196,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available to current cardholders or customers who held a CommBank Awards card in the last 18 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 540
+        description: "Generated sample rule: bonus may not be available to current cardholders or customers who held a CommBank Awards card in the last 18 months."
 
     terms_notes:
       - Generated sample offer based on common Australian rewards-card sign-up structures.
@@ -218,8 +229,10 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card open into year two
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: not available if the user held a Westpac Altitude Qantas or Altitude Black card in the last 24 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: "Generated sample rule: not available if the user held a Westpac Altitude Qantas or Altitude Black card in the last 24 months."
 
     terms_notes:
       - Generated sample offer based on high-tier Qantas rewards cards.
@@ -249,8 +262,10 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card open for over 12 months
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: not available if the user currently holds or held a personal NAB Rewards card in the last 24 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: "Generated sample rule: not available if the user currently holds or held a personal NAB Rewards card in the last 24 months."
 
     terms_notes:
       - Generated sample offer based on mid-tier bank rewards cards.
@@ -280,8 +295,10 @@ credit_card_signup_offers:
     later_bonus_condition: Keep card open for over 12 months
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available if the user held an ANZ Frequent Flyer or ANZ Rewards card in the last 24 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 730
+        description: "Generated sample rule: bonus may not be available if the user held an ANZ Frequent Flyer or ANZ Rewards card in the last 24 months."
 
     terms_notes:
       - Generated sample offer based on premium Qantas frequent flyer cards.
@@ -311,8 +328,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available to existing cardholders or recent Qantas Premier cardholders.
+    eligibility_rules:
+      - type: not_current_cardholder
+        window_days: 365
+        description: "Generated sample rule: bonus may not be available to existing cardholders or those who held a Qantas Premier card in the last 12 months."
 
     terms_notes:
       - Generated sample offer based on airline-branded Qantas cards.
@@ -342,8 +361,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available if the user held a Virgin Money Velocity card in the last 18 months.
+    eligibility_rules:
+      - type: not_held_recently
+        window_days: 540
+        description: "Generated sample rule: bonus may not be available if the user held a Virgin Money Velocity card in the last 18 months."
 
     terms_notes:
       - Generated sample offer designed as a lower-fee Velocity option.
@@ -373,8 +394,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available to current or recent Bankwest Qantas cardholders.
+    eligibility_rules:
+      - type: not_current_cardholder
+        window_days: 365
+        description: "Generated sample rule: bonus may not be available to current cardholders or those who held a Bankwest Qantas card in the last 12 months."
 
     terms_notes:
       - Generated sample offer based on mid-tier Qantas cards.
@@ -404,8 +427,9 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: offer may require manual review because airline partner eligibility can vary.
+    eligibility_rules:
+      - type: manual_review
+        description: "Generated sample rule: offer may require manual review because airline partner eligibility can vary."
 
     terms_notes:
       - Generated sample offer based on airline-transfer rewards cards.
@@ -435,8 +459,10 @@ credit_card_signup_offers:
     later_bonus_condition: Meet year-two spend criteria
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: new cardholders only; recent St.George, BankSA, or Bank of Melbourne Amplify cardholders may be excluded.
+    eligibility_rules:
+      - type: new_cardholders_only
+        window_days: 365
+        description: "Generated sample rule: new cardholders only; recent St.George, BankSA, or Bank of Melbourne Amplify cardholders within the last 12 months may be excluded."
 
     terms_notes:
       - Generated sample offer based on Amplify Qantas Signature-style cards.
@@ -466,8 +492,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: bonus may not be available to current or recent Amplify Rewards cardholders.
+    eligibility_rules:
+      - type: not_current_cardholder
+        window_days: 365
+        description: "Generated sample rule: bonus may not be available to current cardholders or those who held an Amplify Rewards card in the last 12 months."
 
     terms_notes:
       - Generated sample offer designed as a low-fee bank-points option.
@@ -497,8 +525,9 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: offer may not be available to current Suncorp rewards cardholders.
+    eligibility_rules:
+      - type: not_current_cardholder
+        description: "Generated sample rule: offer may not be available to current Suncorp rewards cardholders."
 
     terms_notes:
       - Generated sample offer designed for low-effort scoring cases.
@@ -528,8 +557,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: offer may not be available to existing or recent Bendigo Qantas cardholders.
+    eligibility_rules:
+      - type: not_current_cardholder
+        window_days: 365
+        description: "Generated sample rule: offer may not be available to current cardholders or those who held a Bendigo Qantas card in the last 12 months."
 
     terms_notes:
       - Generated sample offer designed as an easy-spend Qantas option.
@@ -559,8 +590,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: offer applies to new American Express Card Members only.
+    eligibility_rules:
+      - type: new_amex_card_members_only
+        window_days: 540
+        description: "Generated sample rule: offer applies to new American Express Card Members only; not available if you held any American Express card in the last 18 months."
 
     terms_notes:
       - Generated sample offer based on flexible-points Amex travel cards.
@@ -590,8 +623,10 @@ credit_card_signup_offers:
     later_bonus_condition: null
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: offer applies to new American Express Card Members only.
+    eligibility_rules:
+      - type: new_amex_card_members_only
+        window_days: 540
+        description: "Generated sample rule: offer applies to new American Express Card Members only; not available if you held any American Express card in the last 18 months."
 
     terms_notes:
       - Generated sample offer based on co-branded Velocity Amex cards.
@@ -621,8 +656,10 @@ credit_card_signup_offers:
     later_bonus_condition: Meet year-two spend criteria
     later_bonus_included_in_mvp_value: false
 
-    eligibility_notes:
-      - Generated sample rule: new cardholders only; recent Amplify Velocity cardholders may be excluded.
+    eligibility_rules:
+      - type: new_cardholders_only
+        window_days: 365
+        description: "Generated sample rule: new cardholders only; not available if you held an Amplify Velocity card in the last 12 months."
 
     terms_notes:
       - Generated sample offer designed as a balanced Velocity option.

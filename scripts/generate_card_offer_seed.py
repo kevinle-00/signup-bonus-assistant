@@ -75,19 +75,13 @@ def sql_json(value: Any) -> str:
     return sql_string(encoded) + "::jsonb"
 
 
-def infer_rule_type(note: str) -> str:
-    lowered = note.lower()
-    if "american express card members" in lowered:
-        return "new_amex_card_members_only"
-    if "manual review" in lowered:
-        return "manual_review"
-    if "new card" in lowered or "new cardholders" in lowered:
-        return "new_cardholders_only"
-    if "currently hold" in lowered or "current cardholder" in lowered:
-        return "not_current_cardholder"
-    if "held" in lowered or "last 24 months" in lowered or "last 18 months" in lowered:
-        return "not_held_recently"
-    return "manual_review"
+ALLOWED_RULE_TYPES = {
+    "new_amex_card_members_only",
+    "new_cardholders_only",
+    "not_current_cardholder",
+    "not_held_recently",
+    "manual_review",
+}
 
 
 def note_to_string(note: Any) -> str:
@@ -96,25 +90,31 @@ def note_to_string(note: Any) -> str:
     return str(note)
 
 
-def infer_window_days(note: str) -> int | None:
-    lowered = note.lower()
-    if "24 months" in lowered:
-        return 730
-    if "18 months" in lowered:
-        return 540
-    return None
+def eligibility_rules(raw_rules: list[dict[str, Any]], card_name: str) -> list[dict[str, Any]]:
+    """Pass curated structured rules straight through to JSONB.
 
-
-def eligibility_rules(notes: list[str]) -> list[dict[str, Any]]:
+    The curated YAML is the source of truth: each rule must have a `type`
+    drawn from the Go EligibilityRule type set, and a human-readable
+    `description`. `window_days` is optional and only meaningful for
+    time-bounded rule types. We deliberately do not infer anything here so
+    rule classification stays observable and reviewable in the YAML, not
+    hidden in the seed generator.
+    """
     rules = []
-    for note in notes:
-        note = note_to_string(note)
-        rule: dict[str, Any] = {
-            "type": infer_rule_type(note),
-            "description": note,
-        }
-        window_days = infer_window_days(note)
-        if window_days is not None:
+    for raw in raw_rules:
+        if not isinstance(raw, dict):
+            raise ValueError(f"{card_name}: eligibility_rules entries must be mappings, got {raw!r}")
+        rule_type = raw.get("type")
+        if rule_type not in ALLOWED_RULE_TYPES:
+            raise ValueError(f"{card_name}: unknown eligibility rule type {rule_type!r}; allowed: {sorted(ALLOWED_RULE_TYPES)}")
+        description = raw.get("description")
+        if not isinstance(description, str) or not description.strip():
+            raise ValueError(f"{card_name}: eligibility rule of type {rule_type!r} is missing a description")
+        rule: dict[str, Any] = {"type": rule_type, "description": description}
+        if "window_days" in raw and raw["window_days"] is not None:
+            window_days = int(raw["window_days"])
+            if window_days <= 0:
+                raise ValueError(f"{card_name}: window_days must be positive, got {window_days}")
             rule["windowDays"] = window_days
         rules.append(rule)
     return rules
@@ -144,7 +144,7 @@ def sql_value(value: Any) -> str:
 
 def row_values(offer: dict[str, Any]) -> list[str]:
     data_quality = offer.get("data_quality") or "verified"
-    rules = eligibility_rules(offer.get("eligibility_notes") or [])
+    rules = eligibility_rules(offer.get("eligibility_rules") or [], offer["card_name"])
     terms = [note_to_string(note) for note in offer.get("terms_notes") or []]
 
     values: dict[str, Any] = {
