@@ -119,6 +119,45 @@ func TestCreateRecommendationHandlesRepositoryError(t *testing.T) {
 	}
 }
 
+func TestListCardOffersReturnsActiveOffers(t *testing.T) {
+	handler := NewHandler(fakeCardOfferRepository{offers: []recommendations.CardOffer{
+		testAPIOffer("First", 100000, 300000, 99_00),
+		testAPIOffer("Second", 80000, 300000, 149_00),
+	}})
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/card-offers", nil)
+
+	handler.Routes().ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d; body = %s", recorder.Code, http.StatusOK, recorder.Body.String())
+	}
+	var offers []recommendations.CardOffer
+	if err := json.Unmarshal(recorder.Body.Bytes(), &offers); err != nil {
+		t.Fatalf("decode response: %v", err)
+	}
+	if len(offers) != 2 {
+		t.Fatalf("len(offers) = %d, want 2", len(offers))
+	}
+	if offers[0].CardName != "First" {
+		t.Fatalf("first card = %q, want First", offers[0].CardName)
+	}
+}
+
+func TestListCardOffersHandlesRepositoryError(t *testing.T) {
+	handler := NewHandler(fakeCardOfferRepository{err: errors.New("boom")})
+
+	recorder := httptest.NewRecorder()
+	request := httptest.NewRequest(http.MethodGet, "/api/card-offers", nil)
+
+	handler.Routes().ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusInternalServerError {
+		t.Fatalf("status = %d, want %d", recorder.Code, http.StatusInternalServerError)
+	}
+}
+
 func TestHealth(t *testing.T) {
 	handler := NewHandler(fakeCardOfferRepository{})
 

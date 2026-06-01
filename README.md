@@ -66,7 +66,7 @@ Run the API from `backend/`:
 go run ./cmd/api
 ```
 
-The API reads:
+The API loads `.env` automatically when run from either the repo root or `backend/`. It reads:
 
 - `DATABASE_URL`
 - `API_ADDR`, defaulting to `:8080`
@@ -89,4 +89,22 @@ curl -X POST http://localhost:8080/api/recommendations \
     "annualFeePreference": "flexible",
     "acceptsAmex": true
   }'
+```
+
+## Frontend Smoke UI
+
+Install and run the frontend from `frontend/`:
+
+```sh
+npm install
+npm run dev
+```
+
+The Vite dev server proxies `/api` and `/health` to the backend on `localhost:8080`.
+
+Frontend checks:
+
+```sh
+npm run build
+npm run lint
 ```

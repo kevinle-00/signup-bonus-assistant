@@ -1491,36 +1491,43 @@ The project scope is intentionally ambitious enough to demonstrate effective AI-
 
 Each slice should produce a working, inspectable increment. After each slice, the developer should understand the new concepts introduced before moving on.
 
-Recommended slices:
+Current slices:
 
-1. Domain-first recommendation prototype
-   - Implement the core Go recommendation types and scoring logic against in-memory fake offers.
-   - Add focused tests for eligibility, value calculation, spend achievability, and scoring.
-   - No database or frontend yet.
+1. Domain recommendation engine and roadmap
+   - Implement core Go recommendation types against in-memory offers.
+   - Add value calculation, spend achievability, eligibility confidence, scoring, ranking, action checklist, and roadmap generation.
+   - Add focused tests for the domain logic and an in-memory end-to-end recommendation flow.
 
-2. Database-backed offers
-   - Add PostgreSQL, migrations, and seed data for curated card offers.
-   - Implement the card offer repository and `GET /api/card-offers`.
-   - Keep recommendation logic unchanged except for loading offers from the repository.
+2. Data and database foundation
+   - Add PostgreSQL, migrations, Docker Compose, and curated card-offer seed data.
+   - Keep curated YAML as the human-readable source of truth and generate idempotent SQL seed data.
+   - Store structured scoring fields as columns and issuer-specific rules/terms as JSONB.
 
-3. Recommendation API
-   - Add `POST /api/recommendations` with backend validation and structured errors.
-   - Return the full recommendation shape: best card, alternatives, caution cards, explanations, action checklist, and roadmap.
-   - Persist recommendation run snapshots after the response shape is stable.
+3. Backend recommendation API
+   - Implement the card offer repository using plain `pgx`.
+   - Add `POST /api/recommendations` with backend validation.
+   - Load active offers from Postgres, run the domain engine, and return the full recommendation roadmap shape.
+   - Add handler tests with a fake repository and a local smoke test against seeded Postgres.
 
-4. Frontend integration skeleton
+4. Backend completeness
+   - Add `GET /api/card-offers` for inspecting active seeded offers.
+   - Persist reduced recommendation run snapshots in `recommendation_runs` after successful recommendation responses.
+   - Tighten structured API errors and add focused tests for the new behaviour.
+   - Add a repository-level smoke or integration test path if it stays lightweight.
+
+5. Frontend integration skeleton
    - Create the React app shell, API client, and a simple onboarding form.
-   - Submit real user input to the backend.
-   - Render the raw recommendation result clearly before heavy UI polish.
+   - Submit real user input to the backend through the Vite dev proxy.
+   - Render the recommendation result clearly before heavy UI polish.
 
-5. Product polish
-   - Turn the raw result into a polished decision-assistant UI.
+6. Product polish
+   - Turn the smoke UI into a more guided decision-assistant experience.
    - Improve copy, formatting, empty states, disclaimers, alternatives, and caution cards.
    - Keep the UX focused on one clear next action.
 
-6. Final hardening
-   - Add README, `.env.example`, setup instructions, assumptions, trade-offs, and future work.
-   - Run backend tests and a final local smoke test.
+7. Final hardening
+   - Finish README/setup instructions, assumptions, trade-offs, and future work.
+   - Run backend and frontend checks plus a final local smoke test.
    - Confirm the project demonstrates product thinking, engineering quality, and AI-assisted execution without unnecessary complexity.
 
 ### 23.2 Resolved MVP Contract

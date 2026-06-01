@@ -105,6 +105,8 @@ From `backend/`:
 go run ./cmd/api
 ```
 
+The API loads `.env` automatically when run from either the repo root or `backend/`.
+
 Then:
 
 ```sh

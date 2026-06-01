@@ -27,12 +27,23 @@ func NewHandler(cardOffers repositories.CardOfferRepository) *Handler {
 func (h *Handler) Routes() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", h.handleHealth)
+	mux.HandleFunc("GET /api/card-offers", h.handleListCardOffers)
 	mux.HandleFunc("POST /api/recommendations", h.handleCreateRecommendation)
 	return mux
 }
 
 func (h *Handler) handleHealth(w http.ResponseWriter, _ *http.Request) {
 	writeJSON(w, http.StatusOK, map[string]string{"status": "ok"})
+}
+
+func (h *Handler) handleListCardOffers(w http.ResponseWriter, r *http.Request) {
+	offers, err := h.cardOffers.ListActiveCardOffers(r.Context())
+	if err != nil {
+		writeError(w, http.StatusInternalServerError, "load card offers")
+		return
+	}
+
+	writeJSON(w, http.StatusOK, offers)
 }
 
 func (h *Handler) handleCreateRecommendation(w http.ResponseWriter, r *http.Request) {
