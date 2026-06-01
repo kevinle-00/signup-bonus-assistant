@@ -64,7 +64,7 @@ The script:
 
 - reads `data/card_offers_curated.yaml`
 - computes `estimated_bonus_value_cents`
-- converts eligibility notes into basic JSONB rules
+- validates and passes structured eligibility rules into JSONB
 - converts term notes into JSONB arrays
 - writes idempotent SQL using `ON CONFLICT (issuer, card_name) DO UPDATE`
 
@@ -106,3 +106,41 @@ psql "$DATABASE_URL" -f backend/seed/card_offers_seed.sql
 ```
 
 The runtime smoke test has been verified locally with 20 inserted offers.
+
+## Repository Layer
+
+The backend reads active card offers through `internal/repositories.PostgresCardOfferRepository`.
+
+The repository:
+
+- uses plain `pgxpool`, not an ORM
+- selects only active offers from `card_offers`
+- scans structured columns into `recommendations.CardOffer`
+- decodes `eligibility_rules` JSONB into `[]EligibilityRule`
+- decodes `terms_summary` JSONB into `[]string`
+
+Handler tests use a fake repository. The HTTP layer should not need a real Postgres database to prove request decoding, error mapping, and response encoding.
+
+## API Smoke Test
+
+After migrations and seeding, run the API from `backend/`:
+
+```sh
+go run ./cmd/api
+```
+
+Then call:
+
+```sh
+curl -X POST http://localhost:8080/api/recommendations \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "optimisationGoal": "qantas_points",
+    "monthlySpendCents": 250000,
+    "expectedLargePurchasesNext90DaysCents": 100000,
+    "annualFeePreference": "flexible",
+    "acceptsAmex": true
+  }'
+```
+
+The endpoint returns a `RecommendationRoadmap` containing the best card, alternatives, caution cards, reasons, warnings, and action checklist.

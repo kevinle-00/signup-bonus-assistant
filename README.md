@@ -12,6 +12,7 @@ Points Hacking Assistant is a take-home MVP for recommending the next Australian
 - Added local Postgres via Docker Compose on host port `5433`.
 - Added minimal backend config and Postgres connection packages using `pgxpool`.
 - Runtime-checked migrations and seed data locally: 20 card offers inserted successfully.
+- Added a backend recommendation endpoint that loads active Postgres offers and returns a roadmap.
 
 See `docs/db-and-data.md` for the database and data flow.
 
@@ -55,4 +56,37 @@ Regenerate seed SQL from the curated YAML source:
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
 .venv/bin/python scripts/generate_card_offer_seed.py
+```
+
+## Backend API
+
+Run the API from `backend/`:
+
+```sh
+go run ./cmd/api
+```
+
+The API reads:
+
+- `DATABASE_URL`
+- `API_ADDR`, defaulting to `:8080`
+
+Health check:
+
+```sh
+curl http://localhost:8080/health
+```
+
+Create a recommendation roadmap:
+
+```sh
+curl -X POST http://localhost:8080/api/recommendations \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "optimisationGoal": "qantas_points",
+    "monthlySpendCents": 250000,
+    "expectedLargePurchasesNext90DaysCents": 100000,
+    "annualFeePreference": "flexible",
+    "acceptsAmex": true
+  }'
 ```
