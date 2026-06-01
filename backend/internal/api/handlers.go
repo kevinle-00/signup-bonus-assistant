@@ -13,14 +13,16 @@ import (
 )
 
 type Handler struct {
-	cardOffers repositories.CardOfferRepository
-	now        func() time.Time
+	cardOffers        repositories.CardOfferRepository
+	recommendationRun repositories.RecommendationRunRepository
+	now               func() time.Time
 }
 
-func NewHandler(cardOffers repositories.CardOfferRepository) *Handler {
+func NewHandler(cardOffers repositories.CardOfferRepository, recommendationRun repositories.RecommendationRunRepository) *Handler {
 	return &Handler{
-		cardOffers: cardOffers,
-		now:        time.Now,
+		cardOffers:        cardOffers,
+		recommendationRun: recommendationRun,
+		now:               time.Now,
 	}
 }
 
@@ -39,7 +41,7 @@ func (h *Handler) handleHealth(w http.ResponseWriter, _ *http.Request) {
 func (h *Handler) handleListCardOffers(w http.ResponseWriter, r *http.Request) {
 	offers, err := h.cardOffers.ListActiveCardOffers(r.Context())
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "load card offers")
+		writeError(w, http.StatusInternalServerError, "card_offers_unavailable", "load card offers")
 		return
 	}
 
@@ -51,33 +53,92 @@ func (h *Handler) handleCreateRecommendation(w http.ResponseWriter, r *http.Requ
 	decoder := json.NewDecoder(http.MaxBytesReader(w, r.Body, 1<<20))
 	decoder.DisallowUnknownFields()
 	if err := decoder.Decode(&input); err != nil {
-		writeError(w, http.StatusBadRequest, fmt.Sprintf("invalid request JSON: %v", err))
+		writeError(w, http.StatusBadRequest, "invalid_request", fmt.Sprintf("invalid request JSON: %v", err))
 		return
 	}
 	if err := decoder.Decode(&struct{}{}); !errors.Is(err, io.EOF) {
-		writeError(w, http.StatusBadRequest, "invalid request JSON: multiple JSON values are not supported")
+		writeError(w, http.StatusBadRequest, "invalid_request", "invalid request JSON: multiple JSON values are not supported")
 		return
 	}
 	if err := validateRecommendationInput(input); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+		writeError(w, http.StatusBadRequest, "invalid_request", err.Error())
 		return
 	}
 
 	offers, err := h.cardOffers.ListActiveCardOffers(r.Context())
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "load card offers")
+		writeError(w, http.StatusInternalServerError, "card_offers_unavailable", "load card offers")
 		return
 	}
 
 	now := h.now().UTC()
 	result, err := recommendations.Recommend(input, offers, now)
 	if err != nil {
-		writeError(w, http.StatusInternalServerError, "build recommendation")
+		writeError(w, http.StatusInternalServerError, "recommendation_failed", "build recommendation")
 		return
 	}
 	roadmap := recommendations.BuildRoadmap(result, now)
+	if err := h.recommendationRun.CreateRecommendationRun(r.Context(), repositories.RecommendationRun{
+		InputSnapshot:              buildRecommendationInputSnapshot(input),
+		ResultSnapshot:             roadmap,
+		BestCardOfferID:            bestCardOfferID(roadmap),
+		EstimatedYearOneValueCents: roadmap.Summary.EstimatedYearOneValueCents,
+	}); err != nil {
+		writeError(w, http.StatusInternalServerError, "recommendation_run_persist_failed", "persist recommendation run")
+		return
+	}
 
 	writeJSON(w, http.StatusOK, roadmap)
+}
+
+type recommendationInputSnapshot struct {
+	MonthlySpendCents                     int                                 `json:"monthlySpendCents"`
+	ExpectedLargePurchasesNext90DaysCents int                                 `json:"expectedLargePurchasesNext90DaysCents"`
+	OptimisationGoal                      recommendations.OptimisationGoal    `json:"optimisationGoal"`
+	AnnualFeePreference                   recommendations.AnnualFeePreference `json:"annualFeePreference"`
+	MaxAnnualFeeCents                     int                                 `json:"maxAnnualFeeCents"`
+	AcceptsAmex                           bool                                `json:"acceptsAmex"`
+	SpendingCategories                    []recommendations.SpendingCategory  `json:"spendingCategories"`
+	CardHistorySummary                    []cardHistorySnapshot               `json:"cardHistorySummary"`
+}
+
+type cardHistorySnapshot struct {
+	Issuer        string     `json:"issuer"`
+	CardName      string     `json:"cardName"`
+	OpenedAt      *time.Time `json:"openedAt,omitempty"`
+	ClosedAt      *time.Time `json:"closedAt,omitempty"`
+	CurrentlyHeld bool       `json:"currentlyHeld"`
+}
+
+func buildRecommendationInputSnapshot(input recommendations.RecommendationInput) recommendationInputSnapshot {
+	history := make([]cardHistorySnapshot, 0, len(input.CardHistory))
+	for _, item := range input.CardHistory {
+		history = append(history, cardHistorySnapshot{
+			Issuer:        item.Issuer,
+			CardName:      item.CardName,
+			OpenedAt:      item.OpenedAt,
+			ClosedAt:      item.ClosedAt,
+			CurrentlyHeld: item.CurrentlyHeld,
+		})
+	}
+
+	return recommendationInputSnapshot{
+		MonthlySpendCents:                     input.MonthlySpendCents,
+		ExpectedLargePurchasesNext90DaysCents: input.ExpectedLargePurchasesNext90DaysCents,
+		OptimisationGoal:                      input.OptimisationGoal,
+		AnnualFeePreference:                   input.AnnualFeePreference,
+		MaxAnnualFeeCents:                     input.MaxAnnualFeeCents,
+		AcceptsAmex:                           input.AcceptsAmex,
+		SpendingCategories:                    input.SpendingCategories,
+		CardHistorySummary:                    history,
+	}
+}
+
+func bestCardOfferID(roadmap recommendations.RecommendationRoadmap) string {
+	if roadmap.BestRecommendation == nil {
+		return ""
+	}
+	return roadmap.BestRecommendation.Offer.ID
 }
 
 func validateRecommendationInput(input recommendations.RecommendationInput) error {
@@ -140,6 +201,15 @@ func writeJSON(w http.ResponseWriter, status int, value any) {
 	}
 }
 
-func writeError(w http.ResponseWriter, status int, message string) {
-	writeJSON(w, status, map[string]string{"error": message})
+type errorResponse struct {
+	Error apiError `json:"error"`
+}
+
+type apiError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+func writeError(w http.ResponseWriter, status int, code string, message string) {
+	writeJSON(w, status, errorResponse{Error: apiError{Code: code, Message: message}})
 }

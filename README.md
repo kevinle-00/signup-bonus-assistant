@@ -77,6 +77,12 @@ Health check:
 curl http://localhost:8080/health
 ```
 
+Inspect active seeded card offers:
+
+```sh
+curl http://localhost:8080/api/card-offers
+```
+
 Create a recommendation roadmap:
 
 ```sh
@@ -90,6 +96,8 @@ curl -X POST http://localhost:8080/api/recommendations \
     "acceptsAmex": true
   }'
 ```
+
+Successful recommendation responses are stored in `recommendation_runs` as reduced, non-identifying snapshots for auditability.
 
 ## Frontend Smoke UI
 

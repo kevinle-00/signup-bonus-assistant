@@ -53,6 +53,12 @@ Recommendation roadmap:
 POST /api/recommendations
 ```
 
+Card offers:
+
+```text
+GET /api/card-offers
+```
+
 Example request:
 
 ```json
@@ -122,3 +128,5 @@ curl -X POST http://localhost:8080/api/recommendations \
 ```
 
 The local smoke test returned a recommendation from 20 active card offers after reseeding the database.
+
+Successful recommendation responses are persisted in `recommendation_runs` as reduced, non-identifying snapshots.

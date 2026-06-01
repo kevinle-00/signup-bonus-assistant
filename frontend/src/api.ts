@@ -14,9 +14,12 @@ export async function createRecommendation(
   if (!response.ok) {
     let message = 'Could not create recommendation.'
     try {
-      const body = (await response.json()) as { error?: string }
-      if (body.error) {
+      const body = (await response.json()) as { error?: string | { message?: string } }
+      if (typeof body.error === 'string') {
         message = body.error
+      }
+      if (body.error && typeof body.error === 'object' && body.error.message) {
+        message = body.error.message
       }
     } catch {
       // Keep the fallback message when the backend response is not JSON.

@@ -121,6 +121,25 @@ The repository:
 
 Handler tests use a fake repository. The HTTP layer should not need a real Postgres database to prove request decoding, error mapping, and response encoding.
 
+## Recommendation Run Snapshots
+
+Successful `POST /api/recommendations` responses are persisted to `recommendation_runs`.
+
+The input snapshot is intentionally reduced and non-identifying. It stores:
+
+- `monthlySpendCents`
+- `expectedLargePurchasesNext90DaysCents`
+- `optimisationGoal`
+- `annualFeePreference`
+- `maxAnnualFeeCents`
+- `acceptsAmex`
+- `spendingCategories`
+- `cardHistorySummary`
+
+The result snapshot stores the returned roadmap so a past recommendation remains explainable if card-offer data changes later.
+
+The snapshot does not store names, emails, phone numbers, raw bank statements, exact transaction data, or banking credentials.
+
 ## API Smoke Test
 
 After migrations and seeding, run the API from `backend/`:

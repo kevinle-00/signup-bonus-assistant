@@ -35,7 +35,8 @@ func main() {
 	defer pool.Close()
 
 	cardOffers := repositories.NewPostgresCardOfferRepository(pool)
-	handler := api.NewHandler(cardOffers)
+	recommendationRuns := repositories.NewPostgresRecommendationRunRepository(pool)
+	handler := api.NewHandler(cardOffers, recommendationRuns)
 	server := &http.Server{
 		Addr:              cfg.APIAddr,
 		Handler:           handler.Routes(),
