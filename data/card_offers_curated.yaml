@@ -1,0 +1,630 @@
+credit_card_signup_offers:
+  - issuer: ANZ
+    card_name: ANZ Rewards Black
+    source_url: https://www.anz.com.au/personal/credit-cards/rewards-black/
+    source_checked_at: 2026-06-01
+    offer_expires_at: null
+
+    reward_program: ANZ Rewards
+    reward_type: bank_points
+    network: visa
+
+    signup_bonus_points: 130000
+    cashback_cents: 10000
+    minimum_spend_cents: 500000
+    spend_window_days: 90
+    annual_fee_cents: 37500
+    travel_credit_cents: 0
+
+    later_bonus_points: 50000
+    later_bonus_condition: Keep card for over 15 months from activation
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Bonus offer is not available if you currently hold or have held an ANZ Frequent Flyer or ANZ Rewards credit card in the last 24 months.
+
+    terms_notes:
+      - 130,000 bonus points and $100 cashback require $5,000 eligible spend in first 3 months from approval.
+      - Additional 50,000 points require keeping the card for over 15 months and are excluded from MVP year-one value.
+      - Annual fee is $375, including $320 annual fee and $55 rewards program service fee.
+
+  - issuer: NAB
+    card_name: NAB Qantas Rewards Signature Card
+    source_url: https://www.nab.com.au/personal/credit-cards/qantas-rewards/nab-qantas-rewards-signature-card
+    source_checked_at: 2026-06-01
+    offer_expires_at: null
+
+    reward_program: NAB Qantas Rewards
+    reward_type: qantas_points
+    network: visa
+
+    signup_bonus_points: 100000
+    cashback_cents: 25000
+    minimum_spend_cents: 500000
+    spend_window_days: 90
+    annual_fee_cents: 42000
+    travel_credit_cents: 0
+
+    later_bonus_points: 30000
+    later_bonus_condition: Keep card for over 12 months
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Bonus points are not available to customers who currently hold, have held, or are transferring from any personal NAB Qantas Rewards Credit Card in the last 24 months.
+
+    terms_notes:
+      - 100,000 bonus Qantas Points and $250 cashback require $5,000 everyday spend within first 90 days of account opening.
+      - Additional 30,000 bonus Qantas Points require keeping the card for over 12 months and are excluded from MVP year-one value.
+      - Bonus points are credited within three months of meeting spend criteria.
+      - Annual fee is $420.
+      - Existing NAB customers may receive a $100 first-year annual fee reduction, but MVP uses the standard new-customer annual fee.
+      - Qantas Points earn rate is 1 point per $1 up to $5,000 per statement period, then 0.5 points per $1 from $5,001 to $20,000.
+
+  - issuer: Westpac
+    card_name: Westpac Altitude Velocity Platinum
+    source_url: https://www.westpac.com.au/personal-banking/credit-cards/reward/altitude-velocity-platinum/
+    source_checked_at: 2026-06-01
+    offer_expires_at: null
+
+    reward_program: Velocity Frequent Flyer
+    reward_type: velocity_points
+    network: mastercard
+
+    signup_bonus_points: 70000
+    cashback_cents: 0
+    minimum_spend_cents: 400000
+    spend_window_days: 90
+    annual_fee_cents: 25000
+    travel_credit_cents: 0
+
+    later_bonus_points: 30000
+    later_bonus_condition: Spend $4,000 on eligible purchases within 90 days of card anniversary in year two
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Offer not available if you have held an Altitude Platinum or Altitude Black card with Altitude Rewards, Qantas, or Velocity in the last 24 months.
+      - New cards only.
+
+    terms_notes:
+      - 70,000 bonus Velocity Points require $4,000 eligible spend within 90 days of new card approval.
+      - Additional 30,000 Velocity Points require $4,000 eligible spend within 90 days of card anniversary in year two and are excluded from MVP year-one value.
+      - Annual card fee is $175 plus $75 annual Altitude Velocity Rewards Program fee, for a combined MVP annual fee of $250.
+      - Existing Westpac customers may be eligible for a $99 first-year card fee, but MVP uses the standard public fee.
+      - Minimum credit limit is $3,000.
+      - Minimum income requirement is $30,000 per year.
+      - Earn rate is 0.5 Velocity Points per $1 on everyday spend, 0.75 per $1 on international spend, and 0.35 per $1 on other purchases.
+
+  - issuer: American Express
+    card_name: The American Express Platinum Card
+    source_url: https://www.americanexpress.com/en-au/credit-cards/the-platinum-card/
+    source_checked_at: 2026-06-01
+    offer_expires_at: null
+
+    reward_program: Membership Rewards
+    reward_type: flexible_points
+    network: amex
+
+    signup_bonus_points: 200000
+    cashback_cents: 0
+    minimum_spend_cents: 500000
+    spend_window_days: 90
+    annual_fee_cents: 145000
+    travel_credit_cents: 45000
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Offer applies to new American Express Card Members only.
+      - Applicant must be 18 or over, an Australian citizen, permanent resident, or long-term visa holder, and have good credit history with no payment defaults.
+      - Offer is personalised and may change or be withdrawn at any time.
+
+    terms_notes:
+      - 200,000 bonus Membership Rewards Points require $5,000 eligible spend on the new card within first 3 months after approval.
+      - Page may show personalised bonus offers, but MVP uses the conservative 200,000-point offer.
+      - Annual fee is $1,450.
+      - Card is a charge card.
+      - Includes $450 annual travel credit through American Express Travel Online.
+      - Includes up to $400 dining credits, but MVP treats this as a conditional benefit and excludes it from net value.
+      - Earn rate is 2.25 Membership Rewards points per $1 spent on purchases excluding Australian government bodies.
+      - Earn rate is 1 Membership Rewards point per $1 spent at Australian government bodies.
+
+  - issuer: ANZ
+    card_name: ANZ Rewards Platinum Credit Card
+    source_url: https://www.anz.com.au/personal/credit-cards/rewards-platinum/
+    source_checked_at: 2026-06-01
+    offer_expires_at: null
+
+    reward_program: ANZ Rewards with Velocity auto-redemption
+    reward_type: velocity_points
+    network: visa
+
+    signup_bonus_points: 60000
+    cashback_cents: 5000
+    minimum_spend_cents: 350000
+    spend_window_days: 90
+    annual_fee_cents: 14900
+    travel_credit_cents: 0
+
+    later_bonus_points: 20000
+    later_bonus_condition: Keep card for over 15 months from activation with Velocity auto-redemption enabled
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - New card only.
+      - Velocity offer requires switching on auto-redemption to transfer ANZ Reward Points to Velocity Frequent Flyer Points within 3 months from approval.
+      - Auto-redemption must be kept on until points for the relevant criteria have been made available for redemption.
+
+    terms_notes:
+      - 60,000 bonus Velocity Points and $50 cashback require $3,500 eligible spend within first 3 months from approval.
+      - Additional 20,000 Velocity Points require keeping the card for over 15 months and are excluded from MVP year-one value.
+      - Annual fee is $149, including $94 annual fee and $55 Rewards Program Service Fee.
+      - Earn rate is 1.5 ANZ Reward Points per $1 up to $2,000 per statement period, then 0.5 ANZ Reward Points per $1 above $2,000.
+      - Auto-redemption converts ANZ Reward Points to Velocity Points at 2 ANZ Reward Points to 1 Velocity Point.
+      - Minimum credit limit is $6,000.
+
+  - issuer: Commonwealth Bank
+    card_name: CommBank Awards Ultimate Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: CommBank Awards
+    reward_type: bank_points
+    network: mastercard
+
+    signup_bonus_points: 90000
+    cashback_cents: 0
+    minimum_spend_cents: 400000
+    spend_window_days: 90
+    annual_fee_cents: 35000
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available to current cardholders or customers who held a CommBank Awards card in the last 18 months.
+
+    terms_notes:
+      - Generated sample offer based on common Australian rewards-card sign-up structures.
+      - Bonus points require $4,000 eligible spend within 90 days.
+      - Annual fee is modelled as $350.
+
+  - issuer: Westpac
+    card_name: Westpac Altitude Qantas Black Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: mastercard
+
+    signup_bonus_points: 120000
+    cashback_cents: 0
+    minimum_spend_cents: 600000
+    spend_window_days: 90
+    annual_fee_cents: 42500
+    travel_credit_cents: 0
+
+    later_bonus_points: 30000
+    later_bonus_condition: Keep card open into year two
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: not available if the user held a Westpac Altitude Qantas or Altitude Black card in the last 24 months.
+
+    terms_notes:
+      - Generated sample offer based on high-tier Qantas rewards cards.
+      - 120,000 bonus Qantas Points require $6,000 eligible spend within 90 days.
+      - Later year-two bonus is excluded from MVP year-one value.
+
+  - issuer: NAB
+    card_name: NAB Rewards Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: NAB Rewards
+    reward_type: bank_points
+    network: visa
+
+    signup_bonus_points: 80000
+    cashback_cents: 0
+    minimum_spend_cents: 300000
+    spend_window_days: 90
+    annual_fee_cents: 19500
+    travel_credit_cents: 0
+
+    later_bonus_points: 20000
+    later_bonus_condition: Keep card open for over 12 months
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: not available if the user currently holds or held a personal NAB Rewards card in the last 24 months.
+
+    terms_notes:
+      - Generated sample offer based on mid-tier bank rewards cards.
+      - 80,000 bonus NAB Rewards Points require $3,000 eligible spend within 90 days.
+      - Annual fee is modelled as $195.
+
+  - issuer: ANZ
+    card_name: ANZ Frequent Flyer Black Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: visa
+
+    signup_bonus_points: 110000
+    cashback_cents: 10000
+    minimum_spend_cents: 500000
+    spend_window_days: 90
+    annual_fee_cents: 42500
+    travel_credit_cents: 0
+
+    later_bonus_points: 20000
+    later_bonus_condition: Keep card open for over 12 months
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available if the user held an ANZ Frequent Flyer or ANZ Rewards card in the last 24 months.
+
+    terms_notes:
+      - Generated sample offer based on premium Qantas frequent flyer cards.
+      - 110,000 bonus Qantas Points and $100 cashback require $5,000 eligible spend within 90 days.
+      - Later bonus is excluded from MVP year-one value.
+
+  - issuer: Qantas Money
+    card_name: Qantas Premier Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: mastercard
+
+    signup_bonus_points: 80000
+    cashback_cents: 0
+    minimum_spend_cents: 400000
+    spend_window_days: 90
+    annual_fee_cents: 29900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available to existing cardholders or recent Qantas Premier cardholders.
+
+    terms_notes:
+      - Generated sample offer based on airline-branded Qantas cards.
+      - 80,000 bonus Qantas Points require $4,000 eligible spend within 90 days.
+      - Annual fee is modelled as $299.
+
+  - issuer: Virgin Money
+    card_name: Virgin Money Velocity Flyer Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Velocity Frequent Flyer
+    reward_type: velocity_points
+    network: visa
+
+    signup_bonus_points: 60000
+    cashback_cents: 0
+    minimum_spend_cents: 250000
+    spend_window_days: 90
+    annual_fee_cents: 12900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available if the user held a Virgin Money Velocity card in the last 18 months.
+
+    terms_notes:
+      - Generated sample offer designed as a lower-fee Velocity option.
+      - 60,000 bonus Velocity Points require $2,500 eligible spend within 90 days.
+      - Annual fee is modelled as $129.
+
+  - issuer: Bankwest
+    card_name: Bankwest Qantas Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: mastercard
+
+    signup_bonus_points: 70000
+    cashback_cents: 0
+    minimum_spend_cents: 300000
+    spend_window_days: 90
+    annual_fee_cents: 19900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available to current or recent Bankwest Qantas cardholders.
+
+    terms_notes:
+      - Generated sample offer based on mid-tier Qantas cards.
+      - 70,000 bonus Qantas Points require $3,000 eligible spend within 90 days.
+      - Annual fee is modelled as $199.
+
+  - issuer: HSBC
+    card_name: HSBC Star Alliance Rewards Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Star Alliance Rewards
+    reward_type: flexible_points
+    network: visa
+
+    signup_bonus_points: 90000
+    cashback_cents: 0
+    minimum_spend_cents: 400000
+    spend_window_days: 90
+    annual_fee_cents: 45000
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: offer may require manual review because airline partner eligibility can vary.
+
+    terms_notes:
+      - Generated sample offer based on airline-transfer rewards cards.
+      - 90,000 bonus flexible travel points require $4,000 eligible spend within 90 days.
+      - Annual fee is modelled as $450.
+
+  - issuer: St.George
+    card_name: St.George Amplify Qantas Signature Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: visa
+
+    signup_bonus_points: 90000
+    cashback_cents: 0
+    minimum_spend_cents: 600000
+    spend_window_days: 90
+    annual_fee_cents: 27500
+    travel_credit_cents: 0
+
+    later_bonus_points: 60000
+    later_bonus_condition: Meet year-two spend criteria
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: new cardholders only; recent St.George, BankSA, or Bank of Melbourne Amplify cardholders may be excluded.
+
+    terms_notes:
+      - Generated sample offer based on Amplify Qantas Signature-style cards.
+      - 90,000 bonus Qantas Points require $6,000 eligible spend within 90 days.
+      - Year-two bonus is excluded from MVP year-one value.
+
+  - issuer: Bank of Melbourne
+    card_name: Bank of Melbourne Amplify Rewards Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Amplify Rewards
+    reward_type: bank_points
+    network: visa
+
+    signup_bonus_points: 100000
+    cashback_cents: 0
+    minimum_spend_cents: 300000
+    spend_window_days: 90
+    annual_fee_cents: 9900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: bonus may not be available to current or recent Amplify Rewards cardholders.
+
+    terms_notes:
+      - Generated sample offer designed as a low-fee bank-points option.
+      - 100,000 bonus Amplify Rewards points require $3,000 eligible spend within 90 days.
+      - Annual fee is modelled as $99.
+
+  - issuer: Suncorp Bank
+    card_name: Suncorp Rewards Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Suncorp Rewards
+    reward_type: bank_points
+    network: visa
+
+    signup_bonus_points: 70000
+    cashback_cents: 0
+    minimum_spend_cents: 200000
+    spend_window_days: 90
+    annual_fee_cents: 12900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: offer may not be available to current Suncorp rewards cardholders.
+
+    terms_notes:
+      - Generated sample offer designed for low-effort scoring cases.
+      - 70,000 bonus bank rewards points require $2,000 eligible spend within 90 days.
+      - Annual fee is modelled as $129.
+
+  - issuer: Bendigo Bank
+    card_name: Bendigo Qantas Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Qantas Frequent Flyer
+    reward_type: qantas_points
+    network: mastercard
+
+    signup_bonus_points: 50000
+    cashback_cents: 0
+    minimum_spend_cents: 150000
+    spend_window_days: 90
+    annual_fee_cents: 8900
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: offer may not be available to existing or recent Bendigo Qantas cardholders.
+
+    terms_notes:
+      - Generated sample offer designed as an easy-spend Qantas option.
+      - 50,000 bonus Qantas Points require $1,500 eligible spend within 90 days.
+      - Annual fee is modelled as $89.
+
+  - issuer: American Express
+    card_name: American Express Explorer Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Membership Rewards
+    reward_type: flexible_points
+    network: amex
+
+    signup_bonus_points: 75000
+    cashback_cents: 0
+    minimum_spend_cents: 400000
+    spend_window_days: 90
+    annual_fee_cents: 39500
+    travel_credit_cents: 40000
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: offer applies to new American Express Card Members only.
+
+    terms_notes:
+      - Generated sample offer based on flexible-points Amex travel cards.
+      - 75,000 bonus Membership Rewards Points require $4,000 eligible spend within 90 days.
+      - Includes a modelled $400 travel credit.
+
+  - issuer: American Express
+    card_name: American Express Velocity Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Velocity Frequent Flyer
+    reward_type: velocity_points
+    network: amex
+
+    signup_bonus_points: 100000
+    cashback_cents: 0
+    minimum_spend_cents: 300000
+    spend_window_days: 90
+    annual_fee_cents: 44000
+    travel_credit_cents: 0
+
+    later_bonus_points: 0
+    later_bonus_condition: null
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: offer applies to new American Express Card Members only.
+
+    terms_notes:
+      - Generated sample offer based on co-branded Velocity Amex cards.
+      - 100,000 bonus Velocity Points require $3,000 eligible spend within 90 days.
+      - Annual fee is modelled as $440.
+
+  - issuer: BankSA
+    card_name: BankSA Amplify Velocity Platinum Sample Card
+    source_url: null
+    source_checked_at: null
+    offer_expires_at: null
+    data_quality: generated_sample
+    sample_data_note: Generated sample data for MVP testing. Values are plausible but not source-verified.
+
+    reward_program: Velocity Frequent Flyer
+    reward_type: velocity_points
+    network: visa
+
+    signup_bonus_points: 65000
+    cashback_cents: 0
+    minimum_spend_cents: 250000
+    spend_window_days: 90
+    annual_fee_cents: 14900
+    travel_credit_cents: 0
+
+    later_bonus_points: 25000
+    later_bonus_condition: Meet year-two spend criteria
+    later_bonus_included_in_mvp_value: false
+
+    eligibility_notes:
+      - Generated sample rule: new cardholders only; recent Amplify Velocity cardholders may be excluded.
+
+    terms_notes:
+      - Generated sample offer designed as a balanced Velocity option.
+      - 65,000 bonus Velocity Points require $2,500 eligible spend within 90 days.
+      - Year-two bonus is excluded from MVP year-one value.
