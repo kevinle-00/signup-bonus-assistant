@@ -141,6 +141,10 @@ Confidence downgrades:
 - New Amex member rules check recent Amex history within the curated rule window.
 - Manual review rules keep the card eligible but add warnings.
 
+Card history is self-reported. The engine treats it as an eligibility signal, not proof. To reduce avoidable mismatches, issuer comparison normalises common aliases such as `Amex`/`American Express`, `CommBank`/`Commonwealth Bank`, and the St.George/BankSA/Bank of Melbourne regional issuer group. Card names remain exact text matches for same-card hard exclusions.
+
+When self-reported history triggers a rule, the warning starts with `Your card history may affect eligibility` so the frontend can surface a dedicated card-history impact section.
+
 Important design decision:
 
 Eligibility rules are structured in `data/card_offers_curated.yaml` and passed through to SQL JSONB. The application does not infer rule types from legal text. Ambiguous terms should be encoded as `manual_review`.

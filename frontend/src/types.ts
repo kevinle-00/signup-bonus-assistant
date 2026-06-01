@@ -14,6 +14,15 @@ export type RecommendationInput = {
   annualFeePreference: AnnualFeePreference
   maxAnnualFeeCents: number
   acceptsAmex: boolean
+  cardHistory: UserCardHistoryItem[]
+}
+
+export type UserCardHistoryItem = {
+  issuer: string
+  cardName: string
+  openedAt?: string
+  closedAt?: string
+  currentlyHeld: boolean
 }
 
 export type CardOffer = {

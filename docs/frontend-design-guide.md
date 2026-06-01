@@ -147,6 +147,27 @@ Use:
 
 For the first smoke UI, it is acceptable to put all fields on one page, but style each field as a guided question block.
 
+### Card History
+
+Card history is self-reported, so the UI should make matching as reliable as possible without pretending to verify issuer data.
+
+Use:
+
+- A dedicated mobile picker screen with canonical issuer options instead of arbitrary issuer free text.
+- Option cards for short choices such as current vs recently closed card status.
+- Rough timing cards for closed-card history instead of exact date/month inputs.
+- Plain card-name text entry, with examples, until a full product catalogue exists.
+- Clear copy that history helps estimate eligibility but does not prove issuer approval.
+- `localStorage` persistence for the no-auth MVP profile.
+- Result copy that calls out when saved history affected eligibility confidence.
+
+Avoid:
+
+- Bank account linking.
+- Credit-bureau style verification.
+- A full card search/autocomplete unless the underlying card catalogue exists.
+- Treating self-reported history as guaranteed eligibility truth.
+
 ## Content Tone
 
 Use concise assistant-like copy.

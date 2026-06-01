@@ -73,17 +73,17 @@ Roughly how much do you put on cards each month?
 Helper:
 
 ```text
-A ballpark is fine. Exclude rent, mortgage repayments, and anything you would not usually put on a card.
+A range is enough. We use a conservative representative value in the estimate.
 ```
 
 Input:
 
-- Money input.
-- Default from smoke UI can remain `$2,500` for local testing, but final UX should not feel pre-filled as a recommendation.
+- Range option cards.
+- Send conservative representative cent values to the backend.
 
 Action:
 
-- Bottom `Continue` button.
+- Tapping an option selects it and advances automatically.
 
 ### Screen 4: Large Purchases
 
@@ -101,12 +101,13 @@ Flights, appliances, insurance, or planned bills can make a bonus easier to reac
 
 Input:
 
-- Money input.
+- Range option cards.
 - Allow `$0`.
+- Send conservative representative cent values to the backend.
 
 Action:
 
-- Bottom `Continue` button.
+- Tapping an option selects it and advances automatically.
 
 ### Screen 5: Annual Fee Preference
 
@@ -162,9 +163,29 @@ Options:
 Interaction:
 
 - Option cards.
-- Tapping an option selects it and advances to review.
+- Tapping an option selects it and advances to the card-history step.
 
-### Screen 8: Review
+### Screen 8: Card History
+
+Purpose: collect self-reported history that can improve eligibility confidence.
+
+Content:
+
+- Explain that history is self-reported and helps spot bonus exclusions.
+- Show saved card count.
+- Offer `Manage card history`.
+- Allow skipping if the user is unsure.
+
+Card-history management:
+
+- Use a dedicated `Choose issuer` picker screen with canonical known issuer options rather than arbitrary issuer free text.
+- Selecting an issuer returns to the card-history screen; the back control returns without changing selection.
+- Use option cards for `Currently held` vs `Recently closed` rather than a native dropdown.
+- Keep card name as self-reported text.
+- Use rough closed-timing range cards for closed cards, for example `Last 6 months`, `6-12 months ago`, `12-18 months ago`, `18-24 months ago`, and `More than 24 months`.
+- Persist saved history in `localStorage`.
+
+### Screen 9: Review
 
 Purpose: show the selected inputs before submitting.
 
@@ -176,13 +197,14 @@ Content:
 - Annual fee preference.
 - Maximum annual fee if relevant.
 - Amex preference.
+- Card-history summary.
 
 Actions:
 
 - Primary: `Find my best offer`
 - Secondary: `Back`
 
-### Screen 9: Loading
+### Screen 10: Loading
 
 Purpose: make the recommendation feel like an assistant doing work.
 
@@ -194,7 +216,7 @@ Content:
 
 Do not fake a long delay. Show this only while the request is actually pending.
 
-### Screen 10: Result
+### Screen 11: Result
 
 Purpose: answer the core user question clearly.
 
@@ -228,6 +250,12 @@ Warnings section:
 - Use caution styling, not panic styling.
 - Copy should say `Review before applying`, not `Error`.
 
+Card-history impact section:
+
+- Show when backend warnings explicitly say saved card history affected eligibility confidence.
+- Label as `SELF-REPORTED` so the user understands it improves estimates but does not prove issuer eligibility.
+- Keep this separate from generic warnings when possible.
+
 Alternatives section:
 
 - Lower priority than checklist and reasons.
@@ -252,7 +280,8 @@ This tool provides estimates based on curated offer data and simplified assumpti
 - Every wizard screen after intro has a back control.
 - Progress should show current step percentage or count.
 - Do not allow submission until required fields are valid.
-- Keep form state in React state for now; do not add a form library yet.
+- Keep wizard form state in React state; persist only card history to `localStorage` for now.
+- Do not add a form library yet.
 - If API submission fails, keep the user's inputs and show a styled error state with retry.
 
 ## Validation Rules
@@ -261,6 +290,7 @@ This tool provides estimates based on curated offer data and simplified assumpti
 - Large purchases can be `$0` or more.
 - Strict maximum annual fee must be greater than `$0` when selected.
 - All option screens require a selected value before proceeding, except option-card screens that auto-advance on selection.
+- Closed card-history entries require a rough closed-timing range.
 
 ## Empty And Error States
 

@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import type { Dispatch, ReactNode, SetStateAction } from 'react'
 import './App.css'
 import { createRecommendation } from './api'
 import { dollarsToCents, formatCents, formatDate, formatRewardType } from './format'
@@ -8,7 +9,11 @@ import type {
   RecommendationCandidate,
   RecommendationInput,
   RecommendationRoadmap,
+  UserCardHistoryItem,
 } from './types'
+
+type AppView = 'wizard' | 'profile' | 'cardHistory' | 'issuerPicker'
+type CardHistoryReturnView = 'wizard' | 'profile'
 
 type WizardStep =
   | 'intro'
@@ -18,22 +23,48 @@ type WizardStep =
   | 'annualFee'
   | 'maxAnnualFee'
   | 'amex'
+  | 'cardHistory'
   | 'review'
 
 type FormState = {
   optimisationGoal?: OptimisationGoal
-  monthlySpendDollars: string
-  largePurchasesDollars: string
+  monthlySpendCents?: number
+  monthlySpendLabel?: string
+  largePurchasesCents?: number
+  largePurchasesLabel?: string
   annualFeePreference?: AnnualFeePreference
   maxAnnualFeeDollars: string
   acceptsAmex?: boolean
 }
 
+type RangeOption = {
+  value: number
+  label: string
+  description: string
+}
+
+type CardHistoryDraft = {
+  issuer: string
+  cardName: string
+  status: CardHistoryStatus
+  closedTiming?: ClosedTiming
+}
+
+type CardHistoryStatus = 'current' | 'closed'
+
+type ClosedTiming = 'last_6' | 'six_to_twelve' | 'twelve_to_eighteen' | 'eighteen_to_twenty_four' | 'more_than_twenty_four'
+
 const initialForm: FormState = {
-  monthlySpendDollars: '',
-  largePurchasesDollars: '0',
   maxAnnualFeeDollars: '',
 }
+
+const initialCardDraft: CardHistoryDraft = {
+  issuer: '',
+  cardName: '',
+  status: 'current',
+}
+
+const cardHistoryStorageKey = 'signupBonusAssistant.cardHistory'
 
 const goalOptions: Array<{ value: OptimisationGoal; label: string; description: string }> = [
   { value: 'qantas_points', label: 'Qantas Points', description: 'Prioritise Qantas sign-up bonuses.' },
@@ -43,19 +74,77 @@ const goalOptions: Array<{ value: OptimisationGoal; label: string; description: 
   { value: 'low_effort', label: 'Low effort', description: 'Favour easier spend and cleaner eligibility.' },
 ]
 
+const monthlySpendOptions: RangeOption[] = [
+  { value: 75_000, label: '$0-$1,000', description: 'Use $750/month in the estimate.' },
+  { value: 150_000, label: '$1,000-$2,000', description: 'Use $1,500/month in the estimate.' },
+  { value: 300_000, label: '$2,000-$4,000', description: 'Use $3,000/month in the estimate.' },
+  { value: 500_000, label: '$4,000-$6,000', description: 'Use $5,000/month in the estimate.' },
+  { value: 800_000, label: '$6,000-$10,000', description: 'Use $8,000/month in the estimate.' },
+  { value: 1_000_000, label: '$10,000+', description: 'Use $10,000/month in the estimate.' },
+]
+
+const largePurchaseOptions: RangeOption[] = [
+  { value: 0, label: '$0', description: 'No planned large purchases.' },
+  { value: 75_000, label: '$1-$1,000', description: 'Use $750 in the estimate.' },
+  { value: 200_000, label: '$1,000-$3,000', description: 'Use $2,000 in the estimate.' },
+  { value: 400_000, label: '$3,000-$5,000', description: 'Use $4,000 in the estimate.' },
+  { value: 500_000, label: '$5,000+', description: 'Use $5,000 in the estimate.' },
+]
+
 const feeOptions: Array<{ value: AnnualFeePreference; label: string; description: string }> = [
   { value: 'flexible', label: 'Flexible if the value is strong', description: 'Let net value do most of the work.' },
   { value: 'prefer_low', label: 'Prefer lower fees', description: 'Penalise high-fee cards without hiding them.' },
   { value: 'strict_max', label: 'Set a strict maximum', description: 'Exclude cards above your fee limit.' },
 ]
 
+const issuerOptions = [
+  'American Express',
+  'ANZ',
+  'Bank of Melbourne',
+  'BankSA',
+  'Bankwest',
+  'Bendigo Bank',
+  'Citi',
+  'Commonwealth Bank',
+  'HSBC',
+  'Macquarie Bank',
+  'NAB',
+  'Qantas Money',
+  'St.George',
+  'Suncorp Bank',
+  'Virgin Money',
+  'Westpac',
+]
+
+const cardStatusOptions: Array<{ value: CardHistoryStatus; label: string; description: string }> = [
+  { value: 'current', label: 'Currently held', description: 'You still have this card open.' },
+  { value: 'closed', label: 'Recently closed', description: 'You closed this card in the past few years.' },
+]
+
+const closedTimingOptions: Array<{ value: ClosedTiming; label: string; description: string; monthsAgo: number }> = [
+  { value: 'last_6', label: 'Last 6 months', description: 'Most issuer exclusion windows will still apply.', monthsAgo: 3 },
+  { value: 'six_to_twelve', label: '6-12 months ago', description: 'Useful for 12, 18, and 24 month rules.', monthsAgo: 9 },
+  { value: 'twelve_to_eighteen', label: '12-18 months ago', description: 'Useful for 18 and 24 month rules.', monthsAgo: 15 },
+  { value: 'eighteen_to_twenty_four', label: '18-24 months ago', description: 'Useful for 24 month rules.', monthsAgo: 21 },
+  { value: 'more_than_twenty_four', label: 'More than 24 months', description: 'Usually outside common bonus exclusion windows.', monthsAgo: 30 },
+]
+
 function App() {
+  const [view, setView] = useState<AppView>('wizard')
+  const [cardHistoryReturnView, setCardHistoryReturnView] = useState<CardHistoryReturnView>('profile')
   const [form, setForm] = useState<FormState>(initialForm)
+  const [cardHistory, setCardHistory] = useState<UserCardHistoryItem[]>(readStoredCardHistory)
+  const [cardDraft, setCardDraft] = useState<CardHistoryDraft>(initialCardDraft)
+  const [cardDraftError, setCardDraftError] = useState<string | null>(null)
   const [step, setStep] = useState<WizardStep>('intro')
   const [roadmap, setRoadmap] = useState<RecommendationRoadmap | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+
+  useEffect(() => {
+    writeStoredCardHistory(cardHistory)
+  }, [cardHistory])
 
   function moveTo(nextStep: WizardStep) {
     setFieldError(null)
@@ -67,6 +156,22 @@ function App() {
     setStep(previousStep(step, form))
   }
 
+  function handleTopbarBack() {
+    if (view === 'issuerPicker') {
+      setView('cardHistory')
+      return
+    }
+    if (view === 'cardHistory') {
+      setView(cardHistoryReturnView)
+      return
+    }
+    if (view === 'profile') {
+      setView('wizard')
+      return
+    }
+    goBack()
+  }
+
   function startOver() {
     setForm(initialForm)
     setRoadmap(null)
@@ -74,27 +179,34 @@ function App() {
     setFieldError(null)
     setIsLoading(false)
     setStep('intro')
+    setView('wizard')
+    setCardHistoryReturnView('profile')
+    setCardDraft(initialCardDraft)
+    setCardDraftError(null)
   }
 
-  function continueFromMoneyStep(nextStep: WizardStep, field: 'monthlySpendDollars' | 'largePurchasesDollars' | 'maxAnnualFeeDollars') {
-    const cents = dollarsToCents(form[field])
-    if (field === 'monthlySpendDollars' && cents <= 0) {
-      setFieldError('Enter a monthly card spend greater than $0.')
-      return
-    }
-    if (field === 'maxAnnualFeeDollars' && cents <= 0) {
+  function openCardHistory(returnView: CardHistoryReturnView) {
+    setCardHistoryReturnView(returnView)
+    setView('cardHistory')
+  }
+
+  function selectIssuer(issuer: string) {
+    setCardDraft((current) => ({ ...current, issuer }))
+    setCardDraftError(null)
+    setView('cardHistory')
+  }
+
+  function continueFromMaxFee() {
+    const cents = dollarsToCents(form.maxAnnualFeeDollars)
+    if (cents <= 0) {
       setFieldError('Enter a maximum annual fee greater than $0.')
       return
     }
-    if (Number(form[field] || '0') < 0) {
-      setFieldError('Enter $0 or more.')
-      return
-    }
-    moveTo(nextStep)
+    moveTo('amex')
   }
 
   async function submitRecommendation() {
-    if (!form.optimisationGoal || !form.annualFeePreference || form.acceptsAmex === undefined) {
+    if (!form.optimisationGoal || !form.annualFeePreference || form.acceptsAmex === undefined || form.monthlySpendCents === undefined || form.largePurchasesCents === undefined) {
       setFieldError('Review your answers before continuing.')
       return
     }
@@ -105,11 +217,12 @@ function App() {
 
     const input: RecommendationInput = {
       optimisationGoal: form.optimisationGoal,
-      monthlySpendCents: dollarsToCents(form.monthlySpendDollars),
-      expectedLargePurchasesNext90DaysCents: dollarsToCents(form.largePurchasesDollars),
+      monthlySpendCents: form.monthlySpendCents,
+      expectedLargePurchasesNext90DaysCents: form.largePurchasesCents,
       annualFeePreference: form.annualFeePreference,
       maxAnnualFeeCents: dollarsToCents(form.maxAnnualFeeDollars),
       acceptsAmex: form.acceptsAmex,
+      cardHistory,
     }
 
     try {
@@ -122,31 +235,57 @@ function App() {
     }
   }
 
+  const showBack = view !== 'wizard' || (step !== 'intro' && !roadmap && !isLoading)
+
   return (
     <main className="app-shell">
       <header className="topbar">
-        {step !== 'intro' && !roadmap && !isLoading ? (
-          <button className="icon-button" type="button" onClick={goBack} aria-label="Go back">
+        {showBack ? (
+          <button className="icon-button" type="button" onClick={handleTopbarBack} aria-label="Go back">
             ‹
           </button>
         ) : (
-          <span className="brand-mark">SB</span>
+          <button className="brand-mark" type="button" onClick={() => setView('profile')} aria-label="Open profile">
+            ME
+          </button>
         )}
-        <Progress step={step} form={form} roadmap={roadmap} isLoading={isLoading} />
+        <Progress step={step} form={form} roadmap={roadmap} isLoading={isLoading} view={view} />
       </header>
 
-      {isLoading ? <LoadingScreen /> : null}
-      {!isLoading && error ? <ErrorScreen message={error} onRetry={submitRecommendation} onReview={() => moveTo('review')} /> : null}
-      {!isLoading && !error && roadmap ? <RoadmapView roadmap={roadmap} onStartOver={startOver} /> : null}
-      {!isLoading && !error && !roadmap ? (
+      {view === 'profile' ? (
+        <ProfileScreen cardHistoryCount={cardHistory.length} roadmap={roadmap} onOpenCardHistory={() => openCardHistory('profile')} />
+      ) : null}
+
+      {view === 'cardHistory' ? (
+        <CardHistoryScreen
+          cardHistory={cardHistory}
+          draft={cardDraft}
+          draftError={cardDraftError}
+          setCardHistory={setCardHistory}
+          setDraft={setCardDraft}
+          setDraftError={setCardDraftError}
+          openIssuerPicker={() => setView('issuerPicker')}
+        />
+      ) : null}
+
+      {view === 'issuerPicker' ? (
+        <IssuerPickerScreen selectedIssuer={cardDraft.issuer} onSelect={selectIssuer} />
+      ) : null}
+
+      {view === 'wizard' && isLoading ? <LoadingScreen /> : null}
+      {view === 'wizard' && !isLoading && error ? <ErrorScreen message={error} onRetry={submitRecommendation} onReview={() => moveTo('review')} /> : null}
+      {view === 'wizard' && !isLoading && !error && roadmap ? <RoadmapView roadmap={roadmap} onStartOver={startOver} onOpenProfile={() => setView('profile')} /> : null}
+      {view === 'wizard' && !isLoading && !error && !roadmap ? (
         <WizardScreen
           form={form}
           step={step}
           fieldError={fieldError}
+          cardHistory={cardHistory}
           setForm={setForm}
           moveTo={moveTo}
-          continueFromMoneyStep={continueFromMoneyStep}
+          continueFromMaxFee={continueFromMaxFee}
           submitRecommendation={submitRecommendation}
+          openCardHistory={() => openCardHistory('wizard')}
         />
       ) : null}
     </main>
@@ -157,18 +296,22 @@ function WizardScreen({
   form,
   step,
   fieldError,
+  cardHistory,
   setForm,
   moveTo,
-  continueFromMoneyStep,
+  continueFromMaxFee,
   submitRecommendation,
+  openCardHistory,
 }: {
   form: FormState
   step: WizardStep
   fieldError: string | null
-  setForm: React.Dispatch<React.SetStateAction<FormState>>
+  cardHistory: UserCardHistoryItem[]
+  setForm: Dispatch<SetStateAction<FormState>>
   moveTo: (step: WizardStep) => void
-  continueFromMoneyStep: (nextStep: WizardStep, field: 'monthlySpendDollars' | 'largePurchasesDollars' | 'maxAnnualFeeDollars') => void
+  continueFromMaxFee: () => void
   submitRecommendation: () => void
+  openCardHistory: () => void
 }) {
   if (step === 'intro') {
     return (
@@ -207,22 +350,16 @@ function WizardScreen({
       <QuestionScreen
         eyebrow="Spend profile"
         title="Roughly how much do you put on cards each month?"
-        helper="A ballpark is fine. Exclude rent, mortgage repayments, and anything you would not usually put on a card."
+        helper="A range is enough. We use a conservative representative value in the estimate."
       >
-        <MoneyInput
-          id="monthlySpend"
-          value={form.monthlySpendDollars}
-          placeholder="2500"
-          onChange={(value) => setForm((current) => ({ ...current, monthlySpendDollars: value }))}
+        <OptionList
+          options={monthlySpendOptions}
+          selected={form.monthlySpendCents}
+          onSelect={(value, option) => {
+            setForm((current) => ({ ...current, monthlySpendCents: value, monthlySpendLabel: option.label }))
+            moveTo('largePurchases')
+          }}
         />
-        <FieldError message={fieldError} />
-        <button
-          className="primary-button bottom-action"
-          type="button"
-          onClick={() => continueFromMoneyStep('largePurchases', 'monthlySpendDollars')}
-        >
-          Continue
-        </button>
       </QuestionScreen>
     )
   }
@@ -234,20 +371,14 @@ function WizardScreen({
         title="Any large card purchases coming up?"
         helper="Flights, appliances, insurance, or planned bills can make a bonus easier to reach."
       >
-        <MoneyInput
-          id="largePurchases"
-          value={form.largePurchasesDollars}
-          placeholder="0"
-          onChange={(value) => setForm((current) => ({ ...current, largePurchasesDollars: value }))}
+        <OptionList
+          options={largePurchaseOptions}
+          selected={form.largePurchasesCents}
+          onSelect={(value, option) => {
+            setForm((current) => ({ ...current, largePurchasesCents: value, largePurchasesLabel: option.label }))
+            moveTo('annualFee')
+          }}
         />
-        <FieldError message={fieldError} />
-        <button
-          className="primary-button bottom-action"
-          type="button"
-          onClick={() => continueFromMoneyStep('annualFee', 'largePurchasesDollars')}
-        >
-          Continue
-        </button>
       </QuestionScreen>
     )
   }
@@ -277,11 +408,7 @@ function WizardScreen({
           onChange={(value) => setForm((current) => ({ ...current, maxAnnualFeeDollars: value }))}
         />
         <FieldError message={fieldError} />
-        <button
-          className="primary-button bottom-action"
-          type="button"
-          onClick={() => continueFromMoneyStep('amex', 'maxAnnualFeeDollars')}
-        >
+        <button className="primary-button bottom-action" type="button" onClick={continueFromMaxFee}>
           Continue
         </button>
       </QuestionScreen>
@@ -299,9 +426,29 @@ function WizardScreen({
           selected={form.acceptsAmex}
           onSelect={(value) => {
             setForm((current) => ({ ...current, acceptsAmex: value }))
-            moveTo('review')
+            moveTo('cardHistory')
           }}
         />
+      </QuestionScreen>
+    )
+  }
+
+  if (step === 'cardHistory') {
+    return (
+      <QuestionScreen
+        eyebrow="Eligibility check"
+        title="Card history helps avoid offers you may not qualify for."
+        helper="Add cards you currently hold or recently closed. You can skip this if you are unsure."
+      >
+        <div className="review-card">
+          <ReviewRow label="Cards saved" value={cardHistory.length === 0 ? 'None yet' : `${cardHistory.length} card${cardHistory.length === 1 ? '' : 's'}`} />
+        </div>
+        <button className="secondary-button" type="button" onClick={openCardHistory}>
+          Manage card history
+        </button>
+        <button className="primary-button bottom-action" type="button" onClick={() => moveTo('review')}>
+          Continue
+        </button>
       </QuestionScreen>
     )
   }
@@ -310,19 +457,239 @@ function WizardScreen({
     <QuestionScreen eyebrow="Review" title="Ready to check the active offers?">
       <div className="review-card">
         <ReviewRow label="Goal" value={labelForGoal(form.optimisationGoal)} />
-        <ReviewRow label="Monthly spend" value={formatDollars(form.monthlySpendDollars)} />
-        <ReviewRow label="Large purchases" value={formatDollars(form.largePurchasesDollars)} />
+        <ReviewRow label="Monthly spend" value={form.monthlySpendLabel ?? 'Not selected'} />
+        <ReviewRow label="Large purchases" value={form.largePurchasesLabel ?? 'Not selected'} />
         <ReviewRow label="Annual fee" value={labelForFee(form.annualFeePreference)} />
         {form.annualFeePreference === 'strict_max' ? (
           <ReviewRow label="Fee limit" value={formatDollars(form.maxAnnualFeeDollars)} />
         ) : null}
         <ReviewRow label="Amex" value={form.acceptsAmex ? 'Included' : 'Excluded'} />
+        <ReviewRow label="Card history" value={cardHistory.length === 0 ? 'None added' : `${cardHistory.length} saved`} />
       </div>
       <FieldError message={fieldError} />
       <button className="primary-button bottom-action" type="button" onClick={submitRecommendation}>
         Find my best offer
       </button>
     </QuestionScreen>
+  )
+}
+
+function ProfileScreen({
+  cardHistoryCount,
+  roadmap,
+  onOpenCardHistory,
+}: {
+  cardHistoryCount: number
+  roadmap: RecommendationRoadmap | null
+  onOpenCardHistory: () => void
+}) {
+  return (
+    <section className="screen profile-screen">
+      <div>
+        <p className="eyebrow">Profile</p>
+        <h1>Your assistant profile</h1>
+        <p className="hero-copy">Review the details used to personalise your card-switching recommendation.</p>
+      </div>
+      <div className="profile-grid">
+        <button className="profile-tile" type="button" onClick={onOpenCardHistory}>
+          <span>Card history</span>
+          <small>{cardHistoryCount === 0 ? 'No cards added' : `${cardHistoryCount} saved`}</small>
+          <b>→</b>
+        </button>
+        <div className="profile-tile profile-tile-muted">
+          <span>Preferences</span>
+          <small>Set during the wizard</small>
+          <b>·</b>
+        </div>
+        <div className="profile-tile profile-tile-muted">
+          <span>Latest recommendation</span>
+          <small>{roadmap?.bestRecommendation?.offer.cardName ?? 'No result yet'}</small>
+          <b>·</b>
+        </div>
+        <div className="profile-tile profile-tile-muted">
+          <span>About this estimate</span>
+          <small>Curated offers, simplified assumptions, not financial advice</small>
+          <b>·</b>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function CardHistoryScreen({
+  cardHistory,
+  draft,
+  draftError,
+  setCardHistory,
+  setDraft,
+  setDraftError,
+  openIssuerPicker,
+}: {
+  cardHistory: UserCardHistoryItem[]
+  draft: CardHistoryDraft
+  draftError: string | null
+  setCardHistory: Dispatch<SetStateAction<UserCardHistoryItem[]>>
+  setDraft: Dispatch<SetStateAction<CardHistoryDraft>>
+  setDraftError: Dispatch<SetStateAction<string | null>>
+  openIssuerPicker: () => void
+}) {
+  function addCard() {
+    if (!draft.issuer.trim() || !draft.cardName.trim()) {
+      setDraftError('Add both issuer and card name.')
+      return
+    }
+    if (draft.status === 'closed' && !draft.closedTiming) {
+      setDraftError('Choose roughly when you closed this card.')
+      return
+    }
+    const closedAt = draft.status === 'closed' && draft.closedTiming ? closedAtFromTiming(draft.closedTiming) : undefined
+    setCardHistory((current) => [
+      ...current,
+      {
+        issuer: draft.issuer.trim(),
+        cardName: draft.cardName.trim(),
+        currentlyHeld: draft.status === 'current',
+        closedAt,
+      },
+    ])
+    setDraft(initialCardDraft)
+    setDraftError(null)
+  }
+
+  return (
+    <section className="screen card-history-screen">
+      <div>
+        <p className="eyebrow">Card history</p>
+        <h1>Cards you hold or recently closed</h1>
+        <p className="hero-copy">This self-reported history helps the assistant spot bonus exclusions and lower-confidence offers.</p>
+      </div>
+
+      <div className="history-list">
+        {cardHistory.length === 0 ? <p className="helper-copy small-copy">No cards added yet.</p> : null}
+        {cardHistory.map((item, index) => (
+          <article className="history-card" key={`${item.issuer}-${item.cardName}-${index}`}>
+            <div>
+              <h3>{item.cardName}</h3>
+              <p>{item.issuer}</p>
+              <span>{item.currentlyHeld ? 'Currently held' : `Closed ${item.closedAt ? formatDate(item.closedAt) : 'recently'}`}</span>
+            </div>
+            <button
+              className="text-button"
+              type="button"
+              onClick={() => setCardHistory((current) => current.filter((_, itemIndex) => itemIndex !== index))}
+            >
+              Remove
+            </button>
+          </article>
+        ))}
+      </div>
+
+      <div className="history-form">
+        <p className="small-copy">Choose from known issuers so saved history can match the current bonus rules more reliably.</p>
+        <button
+          className={`picker-button ${draft.issuer ? 'picker-button-selected' : ''}`}
+          type="button"
+          onClick={openIssuerPicker}
+        >
+          <span>Issuer</span>
+          <strong>{draft.issuer || 'Choose issuer'}</strong>
+          <b>→</b>
+        </button>
+        <input
+          className="text-input"
+          aria-label="Card name"
+          placeholder="Card name, e.g. Rewards Platinum"
+          value={draft.cardName}
+          onChange={(event) => setDraft((current) => ({ ...current, cardName: event.target.value }))}
+        />
+        <InlineChoiceGroup
+          label="Card status"
+          options={cardStatusOptions}
+          selected={draft.status}
+          onSelect={(status) => setDraft((current) => ({ ...current, status, closedTiming: status === 'current' ? undefined : current.closedTiming }))}
+        />
+        {draft.status === 'closed' ? (
+          <InlineChoiceGroup
+            label="When did you close it?"
+            helper="Rough timing is enough. We only use this to flag possible bonus exclusions."
+            options={closedTimingOptions}
+            selected={draft.closedTiming}
+            onSelect={(closedTiming) => setDraft((current) => ({ ...current, closedTiming }))}
+          />
+        ) : null}
+        <FieldError message={draftError} />
+        <button className="primary-button" type="button" onClick={addCard}>
+          Add card
+        </button>
+      </div>
+    </section>
+  )
+}
+
+function InlineChoiceGroup<T extends string>({
+  label,
+  helper,
+  options,
+  selected,
+  onSelect,
+}: {
+  label: string
+  helper?: string
+  options: Array<{ value: T; label: string; description: string }>
+  selected?: T
+  onSelect: (value: T) => void
+}) {
+  return (
+    <div className="choice-group">
+      <div>
+        <p className="field-label-text">{label}</p>
+        {helper ? <p className="small-copy choice-helper">{helper}</p> : null}
+      </div>
+      <div className="choice-card-list">
+        {options.map((option) => (
+          <button
+            className={`choice-card ${selected === option.value ? 'choice-card-selected' : ''}`}
+            type="button"
+            key={option.value}
+            onClick={() => onSelect(option.value)}
+          >
+            <span>{option.label}</span>
+            <small>{option.description}</small>
+          </button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function IssuerPickerScreen({
+  selectedIssuer,
+  onSelect,
+}: {
+  selectedIssuer: string
+  onSelect: (issuer: string) => void
+}) {
+  return (
+    <section className="screen issuer-picker-screen">
+      <div>
+        <p className="eyebrow">Known issuers</p>
+        <h1>Choose issuer</h1>
+        <p className="helper-copy">Pick the issuer shown on your card. This helps match bonus exclusion rules more reliably.</p>
+      </div>
+      <div className="picker-list">
+        {issuerOptions.map((issuer) => (
+          <button
+            className={`picker-row ${selectedIssuer === issuer ? 'picker-row-selected' : ''}`}
+            type="button"
+            key={issuer}
+            onClick={() => onSelect(issuer)}
+          >
+            <span>{issuer}</span>
+            <b>{selectedIssuer === issuer ? 'Selected' : 'Choose'}</b>
+          </button>
+        ))}
+      </div>
+    </section>
   )
 }
 
@@ -335,7 +702,7 @@ function QuestionScreen({
   eyebrow: string
   title: string
   helper?: string
-  children: React.ReactNode
+  children: ReactNode
 }) {
   return (
     <section className="screen question-screen">
@@ -349,14 +716,14 @@ function QuestionScreen({
   )
 }
 
-function OptionList<T extends string | boolean>({
+function OptionList<T extends string | boolean | number>({
   options,
   selected,
   onSelect,
 }: {
   options: Array<{ value: T; label: string; description: string }>
   selected?: T
-  onSelect: (value: T) => void
+  onSelect: (value: T, option: { value: T; label: string; description: string }) => void
 }) {
   return (
     <div className="option-list">
@@ -365,7 +732,7 @@ function OptionList<T extends string | boolean>({
           className={`option-card ${selected === option.value ? 'option-card-selected' : ''}`}
           key={String(option.value)}
           type="button"
-          onClick={() => onSelect(option.value)}
+          onClick={() => onSelect(option.value, option)}
         >
           <span>{option.label}</span>
           <small>{option.description}</small>
@@ -437,7 +804,7 @@ function ErrorScreen({ message, onRetry, onReview }: { message: string; onRetry:
   )
 }
 
-function RoadmapView({ roadmap, onStartOver }: { roadmap: RecommendationRoadmap; onStartOver: () => void }) {
+function RoadmapView({ roadmap, onStartOver, onOpenProfile }: { roadmap: RecommendationRoadmap; onStartOver: () => void; onOpenProfile: () => void }) {
   if (!roadmap.hasRecommendation || !roadmap.bestRecommendation) {
     return (
       <section className="screen results-stack">
@@ -452,6 +819,7 @@ function RoadmapView({ roadmap, onStartOver }: { roadmap: RecommendationRoadmap;
   }
 
   const best = roadmap.bestRecommendation
+  const historyImpacts = cardHistoryImpacts(roadmap)
 
   return (
     <section className="screen results-stack">
@@ -484,6 +852,8 @@ function RoadmapView({ roadmap, onStartOver }: { roadmap: RecommendationRoadmap;
         <ListItems items={roadmap.reasons} />
       </section>
 
+      <CardHistoryImpact impacts={historyImpacts} />
+
       {(roadmap.warnings ?? []).length > 0 ? (
         <section className="section-block warning-block">
           <h2>Review before applying</h2>
@@ -504,11 +874,44 @@ function RoadmapView({ roadmap, onStartOver }: { roadmap: RecommendationRoadmap;
         Always check issuer terms and consider your personal circumstances before applying.
       </p>
 
+      <button className="secondary-button" type="button" onClick={onOpenProfile}>
+        View profile
+      </button>
       <button className="secondary-button" type="button" onClick={onStartOver}>
         Start again
       </button>
     </section>
   )
+}
+
+function CardHistoryImpact({ impacts }: { impacts: CardHistoryImpactItem[] }) {
+  if (impacts.length === 0) {
+    return null
+  }
+
+  return (
+    <section className="section-block history-impact-block">
+      <div className="section-heading">
+        <h2>Card history impact</h2>
+        <span className="pill">SELF-REPORTED</span>
+      </div>
+      <div className="history-impact-list">
+        {impacts.map((impact) => (
+          <article className="history-impact-card" key={`${impact.issuer}-${impact.cardName}-${impact.warning}`}>
+            <h3>{impact.cardName}</h3>
+            <p>{impact.issuer}</p>
+            <span>{impact.warning}</span>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+type CardHistoryImpactItem = {
+  issuer: string
+  cardName: string
+  warning: string
 }
 
 function BestRecommendationCard({
@@ -637,17 +1040,51 @@ function ListItems({ items, tone }: { items: string[] | null; tone?: 'warning' }
   )
 }
 
+function cardHistoryImpacts(roadmap: RecommendationRoadmap): CardHistoryImpactItem[] {
+  const impacts: CardHistoryImpactItem[] = []
+  const candidates = [roadmap.bestRecommendation, ...(roadmap.alternatives ?? []), ...(roadmap.ineligibleOrCautionCards ?? [])]
+
+  for (const candidate of candidates) {
+    if (!candidate) {
+      continue
+    }
+    for (const warning of candidate.warnings ?? []) {
+      if (!isCardHistoryWarning(warning)) {
+        continue
+      }
+      impacts.push({ issuer: candidate.offer.issuer, cardName: candidate.offer.cardName, warning })
+    }
+  }
+
+  return impacts.slice(0, 3)
+}
+
+function isCardHistoryWarning(value: string): boolean {
+  return value.toLowerCase().includes('card history')
+}
+
 function Progress({
   step,
   form,
   roadmap,
   isLoading,
+  view,
 }: {
   step: WizardStep
   form: FormState
   roadmap: RecommendationRoadmap | null
   isLoading: boolean
+  view: AppView
 }) {
+  if (view === 'profile') {
+    return <span className="pill pill-warm">PROFILE</span>
+  }
+  if (view === 'cardHistory') {
+    return <span className="pill pill-warm">HISTORY</span>
+  }
+  if (view === 'issuerPicker') {
+    return <span className="pill pill-warm">ISSUER</span>
+  }
   if (roadmap) {
     return <span className="pill pill-warm">RESULT</span>
   }
@@ -674,7 +1111,7 @@ function activeSteps(form: FormState): WizardStep[] {
   if (form.annualFeePreference === 'strict_max') {
     steps.push('maxAnnualFee')
   }
-  steps.push('amex', 'review')
+  steps.push('amex', 'cardHistory', 'review')
   return steps
 }
 
@@ -709,6 +1146,57 @@ function labelForFee(preference?: AnnualFeePreference): string {
 
 function formatDollars(value: string): string {
   return formatCents(dollarsToCents(value))
+}
+
+function closedAtFromTiming(timing: ClosedTiming): string {
+  const option = closedTimingOptions.find((item) => item.value === timing)
+  const monthsAgo = option?.monthsAgo ?? 30
+  const now = new Date()
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - monthsAgo, 1)).toISOString()
+}
+
+function readStoredCardHistory(): UserCardHistoryItem[] {
+  if (typeof window === 'undefined') {
+    return []
+  }
+  try {
+    const raw = window.localStorage.getItem(cardHistoryStorageKey)
+    if (!raw) {
+      return []
+    }
+    const parsed = JSON.parse(raw) as unknown
+    if (!Array.isArray(parsed)) {
+      return []
+    }
+    return parsed.filter(isStoredCardHistoryItem)
+  } catch {
+    return []
+  }
+}
+
+function writeStoredCardHistory(history: UserCardHistoryItem[]) {
+  if (typeof window === 'undefined') {
+    return
+  }
+  try {
+    window.localStorage.setItem(cardHistoryStorageKey, JSON.stringify(history))
+  } catch {
+    // Keep the in-memory profile usable if browser storage is unavailable.
+  }
+}
+
+function isStoredCardHistoryItem(value: unknown): value is UserCardHistoryItem {
+  if (!value || typeof value !== 'object') {
+    return false
+  }
+  const item = value as Partial<UserCardHistoryItem>
+  return (
+    typeof item.issuer === 'string' &&
+    typeof item.cardName === 'string' &&
+    typeof item.currentlyHeld === 'boolean' &&
+    (item.openedAt === undefined || typeof item.openedAt === 'string') &&
+    (item.closedAt === undefined || typeof item.closedAt === 'string')
+  )
 }
 
 export default App

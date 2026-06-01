@@ -14,7 +14,7 @@ func EvaluateEligibility(input RecommendationInput, offer CardOffer, now time.Ti
 		return EligibilityResult{
 			Eligible: false,
 			Status:   EligibilityIneligible,
-			Reasons:  []string{"You currently hold this card."},
+			Reasons:  []string{"Your card history says you currently hold this card."},
 		}
 	}
 	reasons = append(reasons, "You do not appear to currently hold this card.")
@@ -63,7 +63,7 @@ func evaluateEligibilityRule(input RecommendationInput, offer CardOffer, rule El
 		// Australian Amex new-member rules are typically 18 months (540 days).
 		if recentlyHeldIssuer(input.CardHistory, "American Express", rule.WindowDays, now) ||
 			recentlyHeldIssuer(input.CardHistory, "Amex", rule.WindowDays, now) {
-			return EligibilityLowConfidence, []string{rule.Description}
+			return EligibilityLowConfidence, []string{cardHistoryWarning(rule.Description)}
 		}
 	case "new_cardholders_only":
 		// Honour the rule's WindowDays. Without a window, any historical card
@@ -71,18 +71,18 @@ func evaluateEligibilityRule(input RecommendationInput, offer CardOffer, rule El
 		// warning, which produces noise on almost every recommendation for
 		// long-term Australian banking customers.
 		if recentlyHeldMatchingIssuer(input.CardHistory, offer, rule.WindowDays, now) {
-			return EligibilityMediumConfidence, []string{rule.Description}
+			return EligibilityMediumConfidence, []string{cardHistoryWarning(rule.Description)}
 		}
 	case "not_current_cardholder":
 		if currentlyHoldsSameIssuer(input.CardHistory, offer) {
-			return EligibilityLowConfidence, []string{rule.Description}
+			return EligibilityLowConfidence, []string{cardHistoryWarning(rule.Description)}
 		}
 		if recentlyHeldMatchingIssuer(input.CardHistory, offer, rule.WindowDays, now) {
-			return EligibilityLowConfidence, []string{rule.Description}
+			return EligibilityLowConfidence, []string{cardHistoryWarning(rule.Description)}
 		}
 	case "not_held_recently":
 		if recentlyHeldMatchingIssuer(input.CardHistory, offer, rule.WindowDays, now) {
-			return EligibilityLowConfidence, []string{rule.Description}
+			return EligibilityLowConfidence, []string{cardHistoryWarning(rule.Description)}
 		}
 	default:
 		return EligibilityManualReview, []string{rule.Description}
@@ -93,7 +93,7 @@ func evaluateEligibilityRule(input RecommendationInput, offer CardOffer, rule El
 
 func currentlyHoldsSameCard(history []UserCardHistoryItem, offer CardOffer) bool {
 	for _, item := range history {
-		if item.CurrentlyHeld && sameText(item.Issuer, offer.Issuer) && sameText(item.CardName, offer.CardName) {
+		if item.CurrentlyHeld && sameIssuer(item.Issuer, offer.Issuer) && sameText(item.CardName, offer.CardName) {
 			return true
 		}
 	}
@@ -102,7 +102,7 @@ func currentlyHoldsSameCard(history []UserCardHistoryItem, offer CardOffer) bool
 
 func currentlyHoldsSameIssuer(history []UserCardHistoryItem, offer CardOffer) bool {
 	for _, item := range history {
-		if item.CurrentlyHeld && sameText(item.Issuer, offer.Issuer) {
+		if item.CurrentlyHeld && sameIssuer(item.Issuer, offer.Issuer) {
 			return true
 		}
 	}
@@ -125,7 +125,7 @@ func recentlyHeldIssuer(history []UserCardHistoryItem, issuer string, windowDays
 	}
 
 	for _, item := range history {
-		if !sameText(item.Issuer, issuer) {
+		if !sameIssuer(item.Issuer, issuer) {
 			continue
 		}
 		if item.CurrentlyHeld {
@@ -136,6 +136,13 @@ func recentlyHeldIssuer(history []UserCardHistoryItem, issuer string, windowDays
 		}
 	}
 	return false
+}
+
+func cardHistoryWarning(description string) string {
+	if description == "" {
+		return "Your card history may affect eligibility for this offer."
+	}
+	return "Your card history may affect eligibility: " + description
 }
 
 func lowerEligibilityStatus(current EligibilityStatus, next EligibilityStatus) EligibilityStatus {
@@ -164,4 +171,54 @@ func eligibilityRank(status EligibilityStatus) int {
 
 func sameText(left string, right string) bool {
 	return strings.EqualFold(strings.TrimSpace(left), strings.TrimSpace(right))
+}
+
+func sameIssuer(left string, right string) bool {
+	leftKey := normaliseIssuer(left)
+	rightKey := normaliseIssuer(right)
+	return leftKey != "" && leftKey == rightKey
+}
+
+func normaliseIssuer(value string) string {
+	cleaned := strings.ToLower(strings.TrimSpace(value))
+	cleaned = strings.NewReplacer(
+		".", "",
+		"&", "and",
+		"-", " ",
+		"_", " ",
+	).Replace(cleaned)
+	compact := strings.ReplaceAll(strings.Join(strings.Fields(cleaned), " "), " ", "")
+
+	switch compact {
+	case "amex", "americanexpress":
+		return "americanexpress"
+	case "anz", "australiaandnewzealandbank", "australiaandnewzealandbankinggroup":
+		return "anz"
+	case "nab", "nationalaustraliabank":
+		return "nab"
+	case "cba", "commbank", "commonwealthbank", "commonwealthbankofaustralia":
+		return "commonwealthbank"
+	case "westpac", "westpacbankingcorporation":
+		return "westpac"
+	case "stgeorge", "saintgeorge", "banksa", "bankofmelbourne":
+		return "westpacregionalbrands"
+	case "bankwest":
+		return "bankwest"
+	case "qantasmoney", "qantaspremier":
+		return "qantasmoney"
+	case "virginmoney":
+		return "virginmoney"
+	case "hsbc":
+		return "hsbc"
+	case "suncorp", "suncorpbank":
+		return "suncorpbank"
+	case "bendigo", "bendigobank":
+		return "bendigobank"
+	case "citi", "citibank":
+		return "citi"
+	case "macquarie", "macquariebank":
+		return "macquariebank"
+	default:
+		return compact
+	}
 }

@@ -1,6 +1,7 @@
 package recommendations
 
 import (
+	"strings"
 	"testing"
 	"time"
 )
@@ -87,6 +88,63 @@ func TestEvaluateEligibilityDowngradesRecentIssuerHistory(t *testing.T) {
 	}
 	if len(got.Warnings) == 0 {
 		t.Fatal("Warnings is empty, want recent-cardholder warning")
+	}
+	if !strings.Contains(got.Warnings[0], "Your card history may affect eligibility") {
+		t.Fatalf("Warning = %q, want card-history context", got.Warnings[0])
+	}
+}
+
+func TestEvaluateEligibilityNormalisesIssuerAliases(t *testing.T) {
+	windowDays := 540
+	closedAt := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+
+	got := EvaluateEligibility(
+		RecommendationInput{
+			AcceptsAmex: true,
+			CardHistory: []UserCardHistoryItem{
+				{Issuer: "Amex", CardName: "Old Explorer", ClosedAt: &closedAt},
+			},
+		},
+		CardOffer{
+			Issuer:  "American Express",
+			Network: CardNetworkAmex,
+			EligibilityRules: []EligibilityRule{
+				{Type: "new_amex_card_members_only", Description: "New Amex Card Members only.", WindowDays: &windowDays},
+			},
+		},
+		time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	if got.Status != EligibilityLowConfidence {
+		t.Fatalf("Status = %q, want %q", got.Status, EligibilityLowConfidence)
+	}
+	if len(got.Warnings) == 0 || !strings.Contains(got.Warnings[0], "card history") {
+		t.Fatalf("Warnings = %#v, want card-history warning", got.Warnings)
+	}
+}
+
+func TestEvaluateEligibilityNormalisesRegionalIssuerGroup(t *testing.T) {
+	windowDays := 365
+	closedAt := time.Date(2026, 3, 1, 0, 0, 0, 0, time.UTC)
+
+	got := EvaluateEligibility(
+		RecommendationInput{
+			AcceptsAmex: true,
+			CardHistory: []UserCardHistoryItem{
+				{Issuer: "BankSA", CardName: "Amplify Rewards", ClosedAt: &closedAt},
+			},
+		},
+		CardOffer{
+			Issuer: "St.George",
+			EligibilityRules: []EligibilityRule{
+				{Type: "new_cardholders_only", Description: "Recent Amplify cardholders may be excluded.", WindowDays: &windowDays},
+			},
+		},
+		time.Date(2026, 6, 1, 0, 0, 0, 0, time.UTC),
+	)
+
+	if got.Status != EligibilityMediumConfidence {
+		t.Fatalf("Status = %q, want %q", got.Status, EligibilityMediumConfidence)
 	}
 }
 
