@@ -1,0 +1,62 @@
+name: Backend
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  backend:
+    name: Backend Checks
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: backend/go.mod
+          cache-dependency-path: backend/go.sum
+
+      - name: Check Go formatting
+        working-directory: backend
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            printf 'Go files need formatting:\n%s\n' "$unformatted"
+            exit 1
+          fi
+
+      - name: Go vet
+        working-directory: backend
+        run: go vet ./...
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: latest
+          working-directory: backend
+          args: ./...
+
+      - name: Go test
+        working-directory: backend
+        run: go test ./...
+
+      - name: Go build
+        working-directory: backend
+        run: go build ./...
+
+      - name: Check seed generator syntax
+        run: python3 -m py_compile scripts/generate_card_offer_seed.py
+
+      - name: Regenerate seed SQL
+        run: python3 scripts/generate_card_offer_seed.py
+
+      - name: Check generated seed is committed
+        run: |
+          if ! git diff --exit-code -- backend/seed/card_offers_seed.sql; then
+            echo "Generated seed SQL is out of date. Run: python3 scripts/generate_card_offer_seed.py"
+            exit 1
+          fi
