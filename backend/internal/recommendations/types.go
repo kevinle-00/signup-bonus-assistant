@@ -68,6 +68,7 @@ type CardOffer struct {
 	LaterBonusPoints             int
 	LaterBonusCondition          *string
 	LaterBonusIncludedInMVPValue bool
+	OfferExpiresAt               *time.Time
 	EligibilityRules             []EligibilityRule
 	TermsSummary                 []string
 }
@@ -121,4 +122,52 @@ type SpendRequirementResult struct {
 	Achievable              bool
 	Difficulty              SpendDifficulty
 	Reason                  string
+}
+
+type EligibilityStatus string
+
+const (
+	EligibilityHighConfidence   EligibilityStatus = "high_confidence"
+	EligibilityMediumConfidence EligibilityStatus = "medium_confidence"
+	EligibilityLowConfidence    EligibilityStatus = "low_confidence"
+	EligibilityIneligible       EligibilityStatus = "ineligible"
+	EligibilityManualReview     EligibilityStatus = "manual_review"
+)
+
+type EligibilityResult struct {
+	Eligible bool
+	Status   EligibilityStatus
+	Reasons  []string
+	Warnings []string
+}
+
+type ScoreResult struct {
+	Score    int
+	Reasons  []string
+	Warnings []string
+}
+
+type RecommendationCandidate struct {
+	Offer            CardOffer
+	Rank             int
+	Score            int
+	Eligibility      EligibilityResult
+	ValueBreakdown   ValueBreakdown
+	SpendRequirement SpendRequirementResult
+	Reasons          []string
+	Warnings         []string
+}
+
+type RecommendationSummary struct {
+	EstimatedYearOneValueCents int
+	CardsConsidered            int
+	EligibleCards              int
+	HighestNetValueCents       int
+}
+
+type RecommendationResult struct {
+	Summary                  RecommendationSummary
+	BestRecommendation       *RecommendationCandidate
+	Alternatives             []RecommendationCandidate
+	IneligibleOrCautionCards []RecommendationCandidate
 }
