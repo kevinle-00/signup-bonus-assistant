@@ -26,6 +26,10 @@ backend/tmp/
 *.out
 coverage.out
 
+# Python tooling
+__pycache__/
+*.py[cod]
+
 # Local editor and tooling state
 .idea/
 .vscode/
