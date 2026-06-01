@@ -509,13 +509,17 @@ Estimated net value:       $650
 
 #### Action checklist
 
-Example:
+Generate deterministic action items from the selected candidate. Do not use AI-generated prose for the MVP checklist; it should be traceable to card-offer fields and recommendation results.
 
-- Check issuer eligibility terms
-- Apply before offer expiry
-- Spend $3,000 within 90 days
-- Track progress toward minimum spend
-- Review card before annual fee renewal
+Example actions:
+
+- Verify the current public offer terms.
+- Review eligibility and spend cautions when warnings exist.
+- Apply for the recommended card.
+- Spend the required amount within the offer window.
+- Track bonus posting.
+- Review card before the next annual fee.
+- Review later bonus conditions separately when present.
 
 #### 12-month roadmap
 
@@ -1172,7 +1176,9 @@ Add an `OPENAI_API_KEY`-guarded endpoint or feature for a natural language expla
 
 The roadmap makes the product feel like an assistant rather than a comparison table.
 
-For the best recommendation, generate:
+For MVP, the roadmap recommends one immediate card. It wraps the ranked recommendation result with reasons, warnings, alternatives, caution cards, and an action checklist.
+
+The checklist maps roughly to this timeline:
 
 ```text
 Month 0: Apply for recommended card
@@ -1182,13 +1188,26 @@ Month 11: Review before annual fee renewal
 Month 12: Re-run assistant for next opportunity
 ```
 
-Roadmap type:
+Domain types:
 
 ```go
-type RoadmapStep struct {
-    Month       int    `json:"month"`
-    Title       string `json:"title"`
-    Description string `json:"description"`
+type ActionChecklistItem struct {
+    Kind        ActionChecklistItemKind
+    Title       string
+    Description string
+    DueAt       *time.Time
+}
+
+type RecommendationRoadmap struct {
+    HasRecommendation          bool
+    Summary                    RecommendationSummary
+    BestRecommendation         *RecommendationCandidate
+    Alternatives               []RecommendationCandidate
+    IneligibleOrCautionCards   []RecommendationCandidate
+    ActionChecklist            []ActionChecklistItem
+    Reasons                    []string
+    Warnings                   []string
+    NoRecommendationReasons    []string
 }
 ```
 
@@ -1197,6 +1216,10 @@ If offer has an expiry date, add:
 ```text
 Apply before [expiry date] if the offer is still available.
 ```
+
+Dates are reminders, not legal deadlines. For example, the minimum-spend due date assumes approval today and should be adjusted once the card is approved.
+
+If no card is safe enough to recommend, return `HasRecommendation = false`, explain why, and retain caution cards so the UI can show why tempting offers were not selected.
 
 ---
 

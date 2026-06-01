@@ -14,6 +14,8 @@ In scope for this slice:
 - Eligibility confidence.
 - Scoring.
 - Candidate orchestration and ranking.
+- Roadmap/action checklist generation.
+- End-to-end in-memory domain tests.
 - Focused unit tests around the domain logic.
 
 Out of scope for this slice:
@@ -21,7 +23,9 @@ Out of scope for this slice:
 - API endpoints.
 - Postgres repositories.
 - Frontend form wiring.
-- Roadmap/action checklist generation.
+- Multi-card sequencing.
+- Credit-score modelling.
+- Points redemption strategy.
 
 ## Mental Model
 
@@ -54,6 +58,10 @@ Files:
 - `backend/internal/recommendations/scoring_test.go`
 - `backend/internal/recommendations/recommend.go`
 - `backend/internal/recommendations/recommend_test.go`
+- `backend/internal/recommendations/checklist.go`
+- `backend/internal/recommendations/checklist_test.go`
+- `backend/internal/recommendations/roadmap.go`
+- `backend/internal/recommendations/roadmap_test.go`
 
 Implemented concepts:
 
@@ -65,6 +73,8 @@ Implemented concepts:
 - `ScoreResult`: score, reasons, and warnings for a candidate.
 - `RecommendationCandidate`: one fully evaluated card offer.
 - `RecommendationResult`: best card, alternatives, caution cards, and summary.
+- `ActionChecklistItem`: one deterministic action for the user.
+- `RecommendationRoadmap`: final single-card MVP plan built from a ranked result.
 
 ## Value Calculation
 
@@ -204,6 +214,53 @@ Ranking is deterministic:
 
 `BestRecommendation` is the first ranked recommendable candidate. `Alternatives` contains up to three next-best recommendable cards. `Summary.EstimatedYearOneValueCents` is the best card's net estimated value, matching the MVP contract that the first roadmap recommends one immediate card.
 
+## Action Checklist
+
+`BuildActionChecklist` turns the best candidate into concrete next steps. It is deterministic and derived from existing domain data, not AI-generated prose.
+
+Checklist items currently include:
+
+- Verify the current public offer terms.
+- Review eligibility and spend cautions when warnings exist.
+- Apply for the recommended card.
+- Spend the required amount within the offer window.
+- Track bonus posting.
+- Review the card before the next annual fee.
+- Review later bonus conditions separately when present.
+
+Dates are conservative reminders, not legal deadlines. For example, the minimum-spend due date assumes approval today and should be adjusted once the card is actually approved.
+
+Later bonuses are surfaced as review items only. They remain excluded from MVP year-one value.
+
+## Roadmap Generation
+
+`BuildRoadmap` wraps a `RecommendationResult` into the final domain-level plan:
+
+- Best recommendation.
+- Estimated year-one value summary.
+- Action checklist.
+- Reasons.
+- Warnings.
+- Alternatives.
+- Ineligible or caution cards.
+
+If there is no safe best recommendation, the roadmap returns `HasRecommendation = false` and explains that no card is safe enough to recommend from the current inputs. Caution cards are still retained so the UI can explain why tempting cards were not recommended.
+
+The MVP roadmap intentionally recommends one immediate card only. It does not yet sequence multiple cards, model credit-score timing, or produce a long-term points strategy.
+
+## In-Memory Service Test
+
+`roadmap_test.go` includes a service-style test that exercises the full domain flow without HTTP, Postgres, or frontend code:
+
+```text
+RecommendationInput + []CardOffer
+→ Recommend
+→ BuildRoadmap
+→ best card + alternatives + caution cards + checklist
+```
+
+This is the end-to-end boundary for Slice 1. Later slices can add repository/API tests around the same domain functions without changing the engine's decision rules.
+
 ## Current Guarantees
 
 Current checks pass from `backend/`:
@@ -223,8 +280,10 @@ The card-offer SQL seed is generated from `data/card_offers_curated.yaml` with:
 
 ## Remaining Work In Slice 1
 
-Still left before Slice 1 is complete:
+Slice 1 domain work is complete enough to move to the next vertical slice.
 
-- Action checklist generation.
-- Roadmap generation.
-- End-to-end recommendation service tests using in-memory offers once roadmap output exists.
+Natural next slices:
+
+- Load active card offers from Postgres into `CardOffer` structs.
+- Add an HTTP endpoint that accepts onboarding input and returns the roadmap.
+- Wire a small frontend form to the endpoint.

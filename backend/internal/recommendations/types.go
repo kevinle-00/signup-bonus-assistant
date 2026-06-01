@@ -171,3 +171,34 @@ type RecommendationResult struct {
 	Alternatives             []RecommendationCandidate
 	IneligibleOrCautionCards []RecommendationCandidate
 }
+
+type ActionChecklistItemKind string
+
+const (
+	ActionChecklistReviewTerms ActionChecklistItemKind = "review_terms"
+	ActionChecklistReviewRisk  ActionChecklistItemKind = "review_risk"
+	ActionChecklistApply       ActionChecklistItemKind = "apply"
+	ActionChecklistMeetSpend   ActionChecklistItemKind = "meet_spend"
+	ActionChecklistTrackBonus  ActionChecklistItemKind = "track_bonus"
+	ActionChecklistAnnualFee   ActionChecklistItemKind = "annual_fee_review"
+	ActionChecklistLaterBonus  ActionChecklistItemKind = "later_bonus_review"
+)
+
+type ActionChecklistItem struct {
+	Kind        ActionChecklistItemKind
+	Title       string
+	Description string
+	DueAt       *time.Time
+}
+
+type RecommendationRoadmap struct {
+	HasRecommendation        bool
+	Summary                  RecommendationSummary
+	BestRecommendation       *RecommendationCandidate
+	Alternatives             []RecommendationCandidate
+	IneligibleOrCautionCards []RecommendationCandidate
+	ActionChecklist          []ActionChecklistItem
+	Reasons                  []string
+	Warnings                 []string
+	NoRecommendationReasons  []string
+}
