@@ -6,6 +6,10 @@
   background: #000000;
 }
 
+.app-shell-with-dots {
+  padding-bottom: 84px;
+}
+
 .topbar {
   display: flex;
   align-items: center;
@@ -28,6 +32,51 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
   font-size: 12px;
   letter-spacing: 0.08em;
+}
+
+.step-pill {
+  display: inline-flex;
+  min-height: 34px;
+  align-items: center;
+  border: 1px solid #3a3a3a;
+  border-radius: 999px;
+  padding: 0 12px;
+  color: #ffffff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+
+.wizard-dots {
+  position: fixed;
+  right: 0;
+  bottom: 20px;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  width: min(calc(100% - 32px), 398px);
+  justify-content: center;
+  gap: 7px;
+  margin: 0 auto;
+  pointer-events: none;
+}
+
+.wizard-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: #3a3a3a;
+}
+
+.wizard-dot-complete {
+  background: #ffffff;
+  opacity: 0.58;
+}
+
+.wizard-dot-current {
+  width: 22px;
+  background: #f6aa45;
+  opacity: 1;
 }
 
 .brand-mark {
@@ -60,6 +109,32 @@
   letter-spacing: 0.08em;
   line-height: 1;
   text-transform: uppercase;
+}
+
+button,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  transition: border-color 140ms ease, background 140ms ease, opacity 140ms ease, transform 120ms ease;
+}
+
+button:active {
+  transform: scale(0.985);
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid #f6aa45;
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .pill-warm {

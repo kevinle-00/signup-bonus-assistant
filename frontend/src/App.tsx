@@ -244,9 +244,10 @@ function App() {
   }
 
   const showBack = view !== 'wizard' || resultDetail !== 'overview' || (step !== 'intro' && !roadmap && !isLoading)
+  const showWizardDots = view === 'wizard' && !isLoading && !error && !roadmap && step !== 'intro'
 
   return (
-    <main className="app-shell">
+    <main className={`app-shell ${showWizardDots ? 'app-shell-with-dots' : ''}`}>
       <header className="topbar">
         {showBack ? (
           <button className="icon-button" type="button" onClick={handleTopbarBack} aria-label="Go back">
@@ -304,6 +305,7 @@ function App() {
           openCardHistory={() => openCardHistory('wizard')}
         />
       ) : null}
+      {showWizardDots ? <WizardProgressDots step={step} form={form} /> : null}
     </main>
   )
 }
@@ -1340,16 +1342,32 @@ function Progress({
   if (step === 'intro') {
     return <span className="pill pill-warm">POINTS ENGINE</span>
   }
-  return <span className="progress-ring">{progressPercent(step, form)}%</span>
+  return <span className="step-pill">{stepLabel(step, form)}</span>
 }
 
-function progressPercent(step: WizardStep, form: FormState): number {
+function WizardProgressDots({ step, form }: { step: WizardStep; form: FormState }) {
+  const steps = activeSteps(form)
+  const index = steps.indexOf(step)
+
+  return (
+    <div className="wizard-dots" aria-label={index >= 0 ? `Step ${index + 1} of ${steps.length}` : 'Onboarding progress'}>
+      {steps.map((item, itemIndex) => (
+        <span
+          className={`wizard-dot ${itemIndex < index ? 'wizard-dot-complete' : ''} ${itemIndex === index ? 'wizard-dot-current' : ''}`}
+          key={item}
+        />
+      ))}
+    </div>
+  )
+}
+
+function stepLabel(step: WizardStep, form: FormState): string {
   const steps = activeSteps(form)
   const index = steps.indexOf(step)
   if (index < 0) {
-    return 0
+    return 'STEP'
   }
-  return Math.round((index / (steps.length - 1)) * 100)
+  return `${index + 1} OF ${steps.length}`
 }
 
 function activeSteps(form: FormState): WizardStep[] {
