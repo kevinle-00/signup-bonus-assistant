@@ -403,12 +403,17 @@ function WizardScreen({
     return (
       <QuestionScreen eyebrow="Fee comfort" title="How should we treat annual fees?">
         <OptionList
+          compact
           options={feeOptions}
           selected={form.annualFeePreference}
           onSelect={(value) => {
             setForm((current) => ({ ...current, annualFeePreference: value }))
             moveTo(value === 'strict_max' ? 'maxAnnualFee' : 'amex')
           }}
+        />
+        <DecisionNote
+          title="How this changes the result"
+          description="Flexible keeps high-value cards in the mix. Prefer lower fees keeps them visible but penalised. Strict maximum removes cards above your limit."
         />
       </QuestionScreen>
     )
@@ -435,6 +440,7 @@ function WizardScreen({
     return (
       <QuestionScreen eyebrow="Network preference" title="Are you open to American Express cards?">
         <OptionList
+          compact
           options={[
             { value: true, label: 'Yes, include Amex cards', description: 'Include high-value Amex offers when they fit.' },
             { value: false, label: 'No, avoid Amex cards', description: 'Filter Amex out of the recommendation.' },
@@ -444,6 +450,10 @@ function WizardScreen({
             setForm((current) => ({ ...current, acceptsAmex: value }))
             moveTo('cardHistory')
           }}
+        />
+        <DecisionNote
+          title="Why this matters"
+          description="Amex offers can be strong, but acceptance varies. If you avoid Amex, the assistant removes those cards completely."
         />
       </QuestionScreen>
     )
@@ -736,16 +746,18 @@ function OptionList<T extends string | boolean | number>({
   options,
   selected,
   onSelect,
+  compact = false,
 }: {
   options: Array<{ value: T; label: string; description: string }>
   selected?: T
   onSelect: (value: T, option: { value: T; label: string; description: string }) => void
+  compact?: boolean
 }) {
   return (
-    <div className="option-list">
+    <div className={`option-list ${compact ? 'option-list-compact' : ''}`}>
       {options.map((option) => (
         <button
-          className={`option-card ${selected === option.value ? 'option-card-selected' : ''}`}
+          className={`option-card ${compact ? 'option-card-compact' : ''} ${selected === option.value ? 'option-card-selected' : ''}`}
           key={String(option.value)}
           type="button"
           onClick={() => onSelect(option.value, option)}
@@ -756,6 +768,15 @@ function OptionList<T extends string | boolean | number>({
         </button>
       ))}
     </div>
+  )
+}
+
+function DecisionNote({ title, description }: { title: string; description: string }) {
+  return (
+    <aside className="decision-note">
+      <p>{title}</p>
+      <span>{description}</span>
+    </aside>
   )
 }
 

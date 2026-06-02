@@ -162,39 +162,91 @@ h3 {
 
 .option-list {
   display: grid;
-  gap: 14px;
+  gap: 10px;
+}
+
+.option-list-compact {
+  gap: 9px;
 }
 
 .option-card {
   display: grid;
   grid-template-columns: 1fr auto;
-  gap: 5px 16px;
-  min-height: 78px;
-  border: 1px solid #ffffff;
-  border-radius: 8px;
-  padding: 16px;
-  background: #f7f7f7;
-  color: #000000;
+  align-items: center;
+  gap: 4px 14px;
+  min-height: 68px;
+  border: 1px solid #3a3a3a;
+  border-radius: 14px;
+  padding: 13px 14px;
+  background: #0a0a0a;
+  color: #ffffff;
   text-align: left;
 }
 
+.option-card span {
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1.2;
+}
+
 .option-card small {
-  color: #4d4d4d;
+  color: #9a9a9a;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .option-card b {
   grid-column: 2;
   grid-row: 1 / span 2;
   align-self: center;
-  color: #000000;
-  font-size: 28px;
+  color: #ffffff;
+  font-size: 22px;
   font-weight: 300;
 }
 
 .option-card-selected {
   border-color: #f6aa45;
+  background: rgba(246, 170, 69, 0.08);
+}
+
+.option-card-compact {
+  min-height: 58px;
+  padding: 11px 13px;
+}
+
+.option-card-compact span {
+  font-size: 15px;
+}
+
+.option-card-compact small {
+  font-size: 12px;
+}
+
+.option-card-compact b {
+  font-size: 18px;
+}
+
+.decision-note {
+  border: 1px solid #3a3a3a;
+  border-radius: 16px;
+  padding: 14px;
+  background: rgba(246, 170, 69, 0.08);
+}
+
+.decision-note p {
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.decision-note span {
+  display: block;
+  margin-top: 7px;
+  color: #d8d8d8;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .money-input {
