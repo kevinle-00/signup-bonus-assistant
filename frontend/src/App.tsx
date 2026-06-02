@@ -138,6 +138,7 @@ function App() {
   const [cardDraft, setCardDraft] = useState<CardHistoryDraft>(initialCardDraft)
   const [cardDraftError, setCardDraftError] = useState<string | null>(null)
   const [step, setStep] = useState<WizardStep>('intro')
+  const [reviewEditStep, setReviewEditStep] = useState<WizardStep | null>(null)
   const [roadmap, setRoadmap] = useState<RecommendationRoadmap | null>(null)
   const [resultDetail, setResultDetail] = useState<ResultDetailView>('overview')
   const [error, setError] = useState<string | null>(null)
@@ -155,6 +156,11 @@ function App() {
 
   function goBack() {
     setFieldError(null)
+    if (reviewEditStep) {
+      setReviewEditStep(null)
+      setStep('review')
+      return
+    }
     setStep(previousStep(step, form))
   }
 
@@ -186,6 +192,7 @@ function App() {
     setFieldError(null)
     setIsLoading(false)
     setStep('intro')
+    setReviewEditStep(null)
     setView('wizard')
     setCardHistoryReturnView('profile')
     setCardDraft(initialCardDraft)
@@ -195,6 +202,16 @@ function App() {
   function openCardHistory(returnView: CardHistoryReturnView) {
     setCardHistoryReturnView(returnView)
     setView('cardHistory')
+  }
+
+  function editReviewStep(nextStep: WizardStep) {
+    setReviewEditStep(nextStep)
+    moveTo(nextStep)
+  }
+
+  function finishReviewEdit() {
+    setReviewEditStep(null)
+    moveTo('review')
   }
 
   function selectIssuer(issuer: string) {
@@ -207,6 +224,10 @@ function App() {
     const cents = dollarsToCents(form.maxAnnualFeeDollars)
     if (cents <= 0) {
       setFieldError('Enter a maximum annual fee greater than $0.')
+      return
+    }
+    if (reviewEditStep) {
+      finishReviewEdit()
       return
     }
     moveTo('amex')
@@ -244,7 +265,7 @@ function App() {
   }
 
   const showBack = view !== 'wizard' || resultDetail !== 'overview' || (step !== 'intro' && !roadmap && !isLoading)
-  const showWizardDots = view === 'wizard' && !isLoading && !error && !roadmap && step !== 'intro'
+  const showWizardDots = view === 'wizard' && !isLoading && !error && !roadmap && step !== 'intro' && !reviewEditStep
 
   return (
     <main className={`app-shell ${showWizardDots ? 'app-shell-with-dots' : ''}`}>
@@ -258,7 +279,7 @@ function App() {
             ME
           </button>
         )}
-        <Progress step={step} form={form} roadmap={roadmap} isLoading={isLoading} view={view} />
+        <Progress step={step} form={form} roadmap={roadmap} isLoading={isLoading} view={view} reviewEditStep={reviewEditStep} />
       </header>
 
       {view === 'profile' ? (
@@ -300,6 +321,9 @@ function App() {
           cardHistory={cardHistory}
           setForm={setForm}
           moveTo={moveTo}
+          reviewEditStep={reviewEditStep}
+          editReviewStep={editReviewStep}
+          finishReviewEdit={finishReviewEdit}
           continueFromMaxFee={continueFromMaxFee}
           submitRecommendation={submitRecommendation}
           openCardHistory={() => openCardHistory('wizard')}
@@ -317,6 +341,9 @@ function WizardScreen({
   cardHistory,
   setForm,
   moveTo,
+  reviewEditStep,
+  editReviewStep,
+  finishReviewEdit,
   continueFromMaxFee,
   submitRecommendation,
   openCardHistory,
@@ -327,10 +354,21 @@ function WizardScreen({
   cardHistory: UserCardHistoryItem[]
   setForm: Dispatch<SetStateAction<FormState>>
   moveTo: (step: WizardStep) => void
+  reviewEditStep: WizardStep | null
+  editReviewStep: (step: WizardStep) => void
+  finishReviewEdit: () => void
   continueFromMaxFee: () => void
   submitRecommendation: () => void
   openCardHistory: () => void
 }) {
+  function finishStep(defaultNextStep: WizardStep) {
+    if (reviewEditStep) {
+      finishReviewEdit()
+      return
+    }
+    moveTo(defaultNextStep)
+  }
+
   if (step === 'intro') {
     return (
       <section className="screen intro-screen">
@@ -356,7 +394,7 @@ function WizardScreen({
           selected={form.optimisationGoal}
           onSelect={(value) => {
             setForm((current) => ({ ...current, optimisationGoal: value }))
-            moveTo('monthlySpend')
+            finishStep('monthlySpend')
           }}
         />
       </QuestionScreen>
@@ -375,7 +413,7 @@ function WizardScreen({
           selected={form.monthlySpendCents}
           onSelect={(value, option) => {
             setForm((current) => ({ ...current, monthlySpendCents: value, monthlySpendLabel: option.label }))
-            moveTo('largePurchases')
+            finishStep('largePurchases')
           }}
         />
       </QuestionScreen>
@@ -394,7 +432,7 @@ function WizardScreen({
           selected={form.largePurchasesCents}
           onSelect={(value, option) => {
             setForm((current) => ({ ...current, largePurchasesCents: value, largePurchasesLabel: option.label }))
-            moveTo('annualFee')
+            finishStep('annualFee')
           }}
         />
       </QuestionScreen>
@@ -410,7 +448,11 @@ function WizardScreen({
           selected={form.annualFeePreference}
           onSelect={(value) => {
             setForm((current) => ({ ...current, annualFeePreference: value }))
-            moveTo(value === 'strict_max' ? 'maxAnnualFee' : 'amex')
+            if (value === 'strict_max') {
+              moveTo('maxAnnualFee')
+              return
+            }
+            finishStep('amex')
           }}
         />
         <DecisionNote
@@ -450,7 +492,7 @@ function WizardScreen({
           selected={form.acceptsAmex}
           onSelect={(value) => {
             setForm((current) => ({ ...current, acceptsAmex: value }))
-            moveTo('cardHistory')
+            finishStep('cardHistory')
           }}
         />
         <DecisionNote
@@ -482,21 +524,37 @@ function WizardScreen({
   }
 
   return (
-    <QuestionScreen eyebrow="Review" title="Ready to check the active offers?">
-      <div className="review-card">
-        <ReviewRow label="Goal" value={labelForGoal(form.optimisationGoal)} />
-        <ReviewRow label="Monthly spend" value={form.monthlySpendLabel ?? 'Not selected'} />
-        <ReviewRow label="Large purchases" value={form.largePurchasesLabel ?? 'Not selected'} />
-        <ReviewRow label="Annual fee" value={labelForFee(form.annualFeePreference)} />
-        {form.annualFeePreference === 'strict_max' ? (
-          <ReviewRow label="Fee limit" value={formatDollars(form.maxAnnualFeeDollars)} />
-        ) : null}
-        <ReviewRow label="Amex" value={form.acceptsAmex ? 'Included' : 'Excluded'} />
-        <ReviewRow label="Card history" value={cardHistory.length === 0 ? 'None added' : `${cardHistory.length} saved`} />
+    <QuestionScreen
+      eyebrow="Review answers"
+      title="Ready to scan active offers?"
+      helper="Check the inputs the assistant will use. Tap any row to adjust it before scanning."
+    >
+      <div className="review-stack">
+        <ReviewSection title="Goal">
+          <ReviewActionRow label="Optimising for" value={labelForGoal(form.optimisationGoal)} onClick={() => editReviewStep('goal')} />
+        </ReviewSection>
+
+        <ReviewSection title="Spend">
+          <ReviewActionRow label="Monthly card spend" value={form.monthlySpendLabel ?? 'Not selected'} onClick={() => editReviewStep('monthlySpend')} />
+          <ReviewActionRow label="Large purchases" value={form.largePurchasesLabel ?? 'Not selected'} onClick={() => editReviewStep('largePurchases')} />
+        </ReviewSection>
+
+        <ReviewSection title="Preferences">
+          <ReviewActionRow label="Annual fee" value={labelForFee(form.annualFeePreference)} onClick={() => editReviewStep('annualFee')} />
+          {form.annualFeePreference === 'strict_max' ? (
+            <ReviewActionRow label="Fee limit" value={formatDollars(form.maxAnnualFeeDollars)} onClick={() => editReviewStep('maxAnnualFee')} />
+          ) : null}
+          <ReviewActionRow label="Amex" value={form.acceptsAmex ? 'Included' : 'Excluded'} onClick={() => editReviewStep('amex')} />
+        </ReviewSection>
+
+        <ReviewSection title="Eligibility history">
+          <ReviewActionRow label="Card history" value={cardHistory.length === 0 ? 'None added' : `${cardHistory.length} saved`} onClick={openCardHistory} />
+        </ReviewSection>
       </div>
+      <p className="review-note">No account linking or credit check is used. This scan only ranks curated offers against your answers.</p>
       <FieldError message={fieldError} />
       <button className="primary-button bottom-action" type="button" onClick={submitRecommendation}>
-        Find my best offer
+        Scan offers
       </button>
     </QuestionScreen>
   )
@@ -1317,12 +1375,14 @@ function Progress({
   roadmap,
   isLoading,
   view,
+  reviewEditStep,
 }: {
   step: WizardStep
   form: FormState
   roadmap: RecommendationRoadmap | null
   isLoading: boolean
   view: AppView
+  reviewEditStep: WizardStep | null
 }) {
   if (view === 'profile') {
     return <span className="pill pill-warm">PROFILE</span>
@@ -1341,6 +1401,9 @@ function Progress({
   }
   if (step === 'intro') {
     return <span className="pill pill-warm">POINTS ENGINE</span>
+  }
+  if (reviewEditStep) {
+    return <span className="step-pill">EDIT</span>
   }
   return <span className="step-pill">{stepLabel(step, form)}</span>
 }
@@ -1389,6 +1452,25 @@ function previousStep(step: WizardStep, form: FormState): WizardStep {
     return 'intro'
   }
   return steps[index - 1]
+}
+
+function ReviewSection({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="review-section">
+      <p>{title}</p>
+      <div className="review-section-card">{children}</div>
+    </section>
+  )
+}
+
+function ReviewActionRow({ label, value, onClick }: { label: string; value: string; onClick: () => void }) {
+  return (
+    <button className="review-action-row" type="button" onClick={onClick}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      <b>→</b>
+    </button>
+  )
 }
 
 function ReviewRow({ label, value }: { label: string; value: string }) {

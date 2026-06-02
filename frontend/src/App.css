@@ -526,6 +526,67 @@ h3 {
   gap: 14px;
 }
 
+.review-stack,
+.review-section {
+  display: grid;
+  gap: 12px;
+}
+
+.review-section > p {
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.review-section-card {
+  overflow: hidden;
+  border: 1px solid #3a3a3a;
+  border-radius: 16px;
+}
+
+.review-action-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 54px;
+  border: 0;
+  border-bottom: 1px solid #222222;
+  padding: 12px 14px;
+  background: #000000;
+  color: #9a9a9a;
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+}
+
+.review-action-row:last-child {
+  border-bottom: 0;
+}
+
+.review-action-row strong {
+  color: #ffffff;
+  font-weight: 400;
+  text-align: right;
+}
+
+.review-action-row b {
+  color: #f6aa45;
+  font-size: 18px;
+  font-weight: 300;
+}
+
+.review-note {
+  border-left: 2px solid #f6aa45;
+  padding-left: 12px;
+  color: #9a9a9a;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
 .review-row {
   display: flex;
   justify-content: space-between;
