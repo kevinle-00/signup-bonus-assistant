@@ -131,6 +131,8 @@ Keep it simple:
 
 ## Phase 2: Switching Roadmap Copy
 
+Status: implemented in the current frontend slice. Keep this section as the acceptance record for the result-screen framing.
+
 ### Goal
 
 Make the result explicitly answer: “what card should I switch to next, and what should I do over the next 6-12 months?”
@@ -142,20 +144,34 @@ Improve frontend copy and result sections using existing backend roadmap data.
 Add/adjust result copy:
 
 - `Switch to this card next` framing.
-- Timeline-style section:
-  - Month 0: verify terms and apply.
+- `Why this card` appears immediately after the recommended-card hero so the user sees the rationale before exploring details.
+- The overview screen uses tappable section cards instead of rendering every section in one long scroll.
+- Dedicated detail screens are available for:
+  - 12-month switch plan.
+  - Switching checklist.
+  - Card-history impact when present.
+  - Review-before-applying warnings when present.
+  - Alternative offers.
+  - Caution cards.
+- Timeline detail screen:
+  - Today: verify terms and apply.
   - Months 1-3: meet spend requirement.
   - Month 4: track bonus posting.
   - Month 11: review before annual fee renewal.
   - Month 12: re-run assistant for next opportunity.
+- Timeline uses consistent numbered cards rather than a vertical line with uneven marker sizes.
 - Clear statement that the MVP recommends one immediate card only.
+- Rename the checklist to `Switching checklist` so it reads as an execution plan, not a generic task list.
+- Keep alternatives below the switch plan and checklist.
 
 ### Acceptance Criteria
 
 - User can understand the switch plan within 5 seconds.
-- Checklist and timeline are more prominent than alternatives.
+- `Why this card` is visible directly under the recommendation hero.
+- Checklist, timeline, alternatives, and caution cards are reachable from mobile-friendly section cards.
 - Disclaimer remains visible.
 - No backend model changes unless clearly needed.
+- Frontend build/lint pass.
 
 ## Phase 3: Frontend Quality Pass
 

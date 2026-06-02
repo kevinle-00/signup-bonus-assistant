@@ -14,6 +14,7 @@ import type {
 
 type AppView = 'wizard' | 'profile' | 'cardHistory' | 'issuerPicker'
 type CardHistoryReturnView = 'wizard' | 'profile'
+type ResultDetailView = 'overview' | 'timeline' | 'checklist' | 'historyImpact' | 'warnings' | 'alternatives' | 'caution'
 
 type WizardStep =
   | 'intro'
@@ -138,6 +139,7 @@ function App() {
   const [cardDraftError, setCardDraftError] = useState<string | null>(null)
   const [step, setStep] = useState<WizardStep>('intro')
   const [roadmap, setRoadmap] = useState<RecommendationRoadmap | null>(null)
+  const [resultDetail, setResultDetail] = useState<ResultDetailView>('overview')
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -157,6 +159,10 @@ function App() {
   }
 
   function handleTopbarBack() {
+    if (view === 'wizard' && roadmap && resultDetail !== 'overview') {
+      setResultDetail('overview')
+      return
+    }
     if (view === 'issuerPicker') {
       setView('cardHistory')
       return
@@ -175,6 +181,7 @@ function App() {
   function startOver() {
     setForm(initialForm)
     setRoadmap(null)
+    setResultDetail('overview')
     setError(null)
     setFieldError(null)
     setIsLoading(false)
@@ -228,6 +235,7 @@ function App() {
     try {
       const nextRoadmap = await createRecommendation(input)
       setRoadmap(nextRoadmap)
+      setResultDetail('overview')
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not create recommendation.')
     } finally {
@@ -235,7 +243,7 @@ function App() {
     }
   }
 
-  const showBack = view !== 'wizard' || (step !== 'intro' && !roadmap && !isLoading)
+  const showBack = view !== 'wizard' || resultDetail !== 'overview' || (step !== 'intro' && !roadmap && !isLoading)
 
   return (
     <main className="app-shell">
@@ -274,7 +282,15 @@ function App() {
 
       {view === 'wizard' && isLoading ? <LoadingScreen /> : null}
       {view === 'wizard' && !isLoading && error ? <ErrorScreen message={error} onRetry={submitRecommendation} onReview={() => moveTo('review')} /> : null}
-      {view === 'wizard' && !isLoading && !error && roadmap ? <RoadmapView roadmap={roadmap} onStartOver={startOver} onOpenProfile={() => setView('profile')} /> : null}
+      {view === 'wizard' && !isLoading && !error && roadmap ? (
+        <RoadmapView
+          roadmap={roadmap}
+          resultDetail={resultDetail}
+          setResultDetail={setResultDetail}
+          onStartOver={startOver}
+          onOpenProfile={() => setView('profile')}
+        />
+      ) : null}
       {view === 'wizard' && !isLoading && !error && !roadmap ? (
         <WizardScreen
           form={form}
@@ -804,7 +820,19 @@ function ErrorScreen({ message, onRetry, onReview }: { message: string; onRetry:
   )
 }
 
-function RoadmapView({ roadmap, onStartOver, onOpenProfile }: { roadmap: RecommendationRoadmap; onStartOver: () => void; onOpenProfile: () => void }) {
+function RoadmapView({
+  roadmap,
+  resultDetail,
+  setResultDetail,
+  onStartOver,
+  onOpenProfile,
+}: {
+  roadmap: RecommendationRoadmap
+  resultDetail: ResultDetailView
+  setResultDetail: (view: ResultDetailView) => void
+  onStartOver: () => void
+  onOpenProfile: () => void
+}) {
   if (!roadmap.hasRecommendation || !roadmap.bestRecommendation) {
     return (
       <section className="screen results-stack">
@@ -820,54 +848,82 @@ function RoadmapView({ roadmap, onStartOver, onOpenProfile }: { roadmap: Recomme
 
   const best = roadmap.bestRecommendation
   const historyImpacts = cardHistoryImpacts(roadmap)
+  const warnings = roadmap.warnings ?? []
+  const alternatives = roadmap.alternatives ?? []
+  const cautionCards = (roadmap.ineligibleOrCautionCards ?? []).slice(0, 3)
+
+  if (resultDetail !== 'overview') {
+    return (
+      <ResultDetailScreen
+        view={resultDetail}
+        roadmap={roadmap}
+        best={best}
+        historyImpacts={historyImpacts}
+        warnings={warnings}
+        alternatives={alternatives}
+        cautionCards={cautionCards}
+      />
+    )
+  }
 
   return (
     <section className="screen results-stack">
       <BestRecommendationCard candidate={best} cardsConsidered={roadmap.summary.cardsConsidered} />
 
-      <section className="section-block next-steps-block">
-        <div className="section-heading">
-          <h2>Your next steps</h2>
-          <span className="pill">ACTION PLAN</span>
-        </div>
-        <div className="checklist">
-          {(roadmap.actionChecklist ?? []).map((item) => (
-            <article className={`checklist-item ${item.kind === 'meet_spend' ? 'checklist-item-primary' : ''}`} key={`${item.kind}-${item.title}`}>
-              <div className="check-icon">✓</div>
-              <div>
-                <h3>{item.title}</h3>
-                <p>{item.description}</p>
-                {item.dueAt ? <span className="due-date">Due around {formatDate(item.dueAt)}</span> : null}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="section-block">
+      <section className="section-block why-summary-block">
         <div className="section-heading">
           <h2>Why this card</h2>
           <span className="quiet-meta">Rank #{best.rank || 1}</span>
         </div>
-        <ListItems items={roadmap.reasons} />
+        <ListItems items={firstItems(roadmap.reasons, 3)} />
       </section>
 
-      <CardHistoryImpact impacts={historyImpacts} />
-
-      {(roadmap.warnings ?? []).length > 0 ? (
-        <section className="section-block warning-block">
-          <h2>Review before applying</h2>
-          <ListItems items={roadmap.warnings} tone="warning" />
-        </section>
-      ) : null}
-
-      <CandidateList title="Alternatives" candidates={roadmap.alternatives ?? []} />
-      <CandidateList
-        title="Caution cards"
-        intro="Not selected because of eligibility, spend, or manual-review cautions."
-        candidates={(roadmap.ineligibleOrCautionCards ?? []).slice(0, 3)}
-        caution
-      />
+      <section className="result-nav-list">
+        <ResultNavCard
+          title="12-month switch plan"
+          description="Apply, meet spend, track the bonus, review renewal, and rerun the assistant."
+          meta="Roadmap"
+          onClick={() => setResultDetail('timeline')}
+        />
+        <ResultNavCard
+          title="Switching checklist"
+          description="The concrete actions to take before and after applying."
+          meta={`${(roadmap.actionChecklist ?? []).length} actions`}
+          onClick={() => setResultDetail('checklist')}
+        />
+        {historyImpacts.length > 0 ? (
+          <ResultNavCard
+            title="Card history impact"
+            description="See which saved history entries affected eligibility confidence."
+            meta={`${historyImpacts.length} note${historyImpacts.length === 1 ? '' : 's'}`}
+            onClick={() => setResultDetail('historyImpact')}
+          />
+        ) : null}
+        {warnings.length > 0 ? (
+          <ResultNavCard
+            title="Review before applying"
+            description="Read eligibility, spend, or offer cautions before you apply."
+            meta={`${warnings.length} warning${warnings.length === 1 ? '' : 's'}`}
+            onClick={() => setResultDetail('warnings')}
+          />
+        ) : null}
+        {alternatives.length > 0 ? (
+          <ResultNavCard
+            title="Alternative offers"
+            description="Backup options if the top card no longer fits after checking terms."
+            meta={`${alternatives.length} cards`}
+            onClick={() => setResultDetail('alternatives')}
+          />
+        ) : null}
+        {cautionCards.length > 0 ? (
+          <ResultNavCard
+            title="Caution cards"
+            description="Cards held back because of eligibility, spend, or manual-review cautions."
+            meta={`${cautionCards.length} cards`}
+            onClick={() => setResultDetail('caution')}
+          />
+        ) : null}
+      </section>
 
       <p className="disclaimer">
         This tool provides estimates based on curated offer data and simplified assumptions. It is not financial advice.
@@ -880,6 +936,170 @@ function RoadmapView({ roadmap, onStartOver, onOpenProfile }: { roadmap: Recomme
       <button className="secondary-button" type="button" onClick={onStartOver}>
         Start again
       </button>
+    </section>
+  )
+}
+
+function ResultDetailScreen({
+  view,
+  roadmap,
+  best,
+  historyImpacts,
+  warnings,
+  alternatives,
+  cautionCards,
+}: {
+  view: ResultDetailView
+  roadmap: RecommendationRoadmap
+  best: RecommendationCandidate
+  historyImpacts: CardHistoryImpactItem[]
+  warnings: string[]
+  alternatives: RecommendationCandidate[]
+  cautionCards: RecommendationCandidate[]
+}) {
+  if (view === 'timeline') {
+    return (
+      <section className="screen results-stack">
+        <SwitchingTimeline candidate={best} />
+      </section>
+    )
+  }
+
+  if (view === 'checklist') {
+    return (
+      <section className="screen results-stack">
+        <SwitchingChecklist items={roadmap.actionChecklist ?? []} />
+      </section>
+    )
+  }
+
+  if (view === 'historyImpact') {
+    return (
+      <section className="screen results-stack">
+        <CardHistoryImpact impacts={historyImpacts} />
+      </section>
+    )
+  }
+
+  if (view === 'warnings') {
+    return (
+      <section className="screen results-stack">
+        <section className="section-block warning-block">
+          <h1>Review before applying</h1>
+          <ListItems items={warnings} tone="warning" />
+        </section>
+      </section>
+    )
+  }
+
+  if (view === 'alternatives') {
+    return (
+      <section className="screen results-stack">
+        <CandidateList title="Alternative offers" intro="Keep these lower priority unless the top card no longer fits after checking issuer terms." candidates={alternatives} />
+      </section>
+    )
+  }
+
+  return (
+    <section className="screen results-stack">
+      <CandidateList
+        title="Caution cards"
+        intro="Not selected because of eligibility, spend, or manual-review cautions."
+        candidates={cautionCards}
+        caution
+      />
+    </section>
+  )
+}
+
+function ResultNavCard({ title, description, meta, onClick }: { title: string; description: string; meta: string; onClick: () => void }) {
+  return (
+    <button className="result-nav-card" type="button" onClick={onClick}>
+      <div>
+        <span>{meta}</span>
+        <h3>{title}</h3>
+        <p>{description}</p>
+      </div>
+      <b>→</b>
+    </button>
+  )
+}
+
+function SwitchingChecklist({ items }: { items: NonNullable<RecommendationRoadmap['actionChecklist']> }) {
+  return (
+    <section className="section-block next-steps-block">
+      <div className="section-heading">
+        <h1>Switching checklist</h1>
+        <span className="pill">NEXT ACTIONS</span>
+      </div>
+      <p className="small-copy">Use this as a one-card plan. The MVP is not sequencing multiple churn moves yet.</p>
+      <div className="checklist">
+        {items.map((item) => (
+          <article className={`checklist-item ${item.kind === 'meet_spend' ? 'checklist-item-primary' : ''}`} key={`${item.kind}-${item.title}`}>
+            <div className="check-icon">✓</div>
+            <div>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+              {item.dueAt ? <span className="due-date">Due around {formatDate(item.dueAt)}</span> : null}
+            </div>
+          </article>
+        ))}
+      </div>
+    </section>
+  )
+}
+
+function SwitchingTimeline({ candidate }: { candidate: RecommendationCandidate }) {
+  const { offer } = candidate
+  const spendWindowMonths = Math.max(1, Math.ceil(offer.spendWindowDays / 30))
+  const spendWindowLabel = spendWindowMonths === 1 ? 'Month 1' : `Months 1-${spendWindowMonths}`
+
+  const items = [
+    {
+      marker: 'Today',
+      title: 'Verify terms and apply',
+      description: `Check the live ${offer.issuer} offer, eligibility rules, annual fee, and exclusions before applying.`,
+    },
+    {
+      marker: spendWindowLabel,
+      title: `Meet the ${formatCents(offer.minimumSpendCents)} spend requirement`,
+      description: `Use eligible purchases only. The model projects this as ${candidate.spendRequirement.difficulty}.`,
+    },
+    {
+      marker: `Month ${spendWindowMonths + 1}`,
+      title: 'Confirm the bonus posted',
+      description: 'Keep spend evidence and check that points or cashback land after the issuer processing period.',
+    },
+    {
+      marker: 'Month 11',
+      title: 'Review before renewal',
+      description: `Decide whether the card is still worth keeping before another ${formatCents(offer.annualFeeCents)} annual fee.`,
+    },
+    {
+      marker: 'Month 12',
+      title: 'Run the assistant again',
+      description: 'Look for the next switching opportunity once your card history and active offers have changed.',
+    },
+  ]
+
+  return (
+    <section className="section-block timeline-block">
+      <div className="section-heading">
+        <h2>Your 12-month switch plan</h2>
+        <span className="pill">ROADMAP</span>
+      </div>
+      <div className="timeline-list">
+        {items.map((item, index) => (
+          <article className="timeline-item" key={item.marker}>
+            <span className="timeline-index">{String(index + 1).padStart(2, '0')}</span>
+            <div>
+              <span className="timeline-marker">{item.marker}</span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </div>
+          </article>
+        ))}
+      </div>
     </section>
   )
 }
@@ -927,7 +1147,7 @@ function BestRecommendationCard({
     <section className="best-card">
       <p className="mono-line">WE SEARCHED {cardsConsidered} PRODUCTS THIS MONTH</p>
       <article className="offer-card offer-card-featured">
-        <span className="pill pill-hot">BEST CARD FOUND</span>
+        <span className="pill pill-hot">SWITCH TO THIS CARD NEXT</span>
         <CardVisual issuer={offer.issuer} rewardType={offer.rewardType} size="large" />
         <div>
           <h2>{offer.cardName}</h2>
@@ -936,6 +1156,7 @@ function BestRecommendationCard({
         <p className="value-statement">
           Estimated year-one value of {formatCents(valueBreakdown.netEstimatedValueCents)}
         </p>
+        <p className="switch-summary">This is the strongest immediate switch based on your spend, card history, and active bonus offers.</p>
         <div className="metadata-grid">
           <span>{offer.signupBonusPoints.toLocaleString('en-AU')} points</span>
           <span>{formatCents(spendRequirement.minimumSpendCents)} spend</span>
@@ -1038,6 +1259,10 @@ function ListItems({ items, tone }: { items: string[] | null; tone?: 'warning' }
       ))}
     </ul>
   )
+}
+
+function firstItems(items: string[] | null, limit: number): string[] {
+  return (items?.filter(Boolean) ?? []).slice(0, limit)
 }
 
 function cardHistoryImpacts(roadmap: RecommendationRoadmap): CardHistoryImpactItem[] {

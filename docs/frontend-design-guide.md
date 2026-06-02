@@ -132,6 +132,24 @@ Recommendation cards should include:
 
 Avoid dense tables in the smoke UI. Lists of alternatives can be stacked cards.
 
+### Result Screens
+
+Treat the result screen as a mobile overview hub.
+
+Use:
+
+- Recommended-card hero first.
+- `Why this card` immediately after the hero.
+- Large section cards for deeper content such as roadmap, checklist, alternatives, and cautions.
+- Dedicated detail screens for long content instead of expanding every section in one scroll.
+- The top back control to return from detail screens to the result overview.
+
+Avoid:
+
+- Long result pages where every section is expanded by default.
+- Accordion-heavy layouts for primary mobile navigation.
+- Timeline markers with inconsistent visual sizes.
+
 ### Forms
 
 Forms should feel like wizard screens, not admin forms.

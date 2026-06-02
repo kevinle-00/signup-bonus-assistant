@@ -222,7 +222,7 @@ Purpose: answer the core user question clearly.
 
 Top hierarchy:
 
-1. `Best card found` status pill.
+1. `Switch to this card next` status pill.
 2. Card name and issuer.
 3. Big value statement: `Estimated year-one value of $830`.
 4. Key facts row:
@@ -233,8 +233,25 @@ Top hierarchy:
 
 Primary action section:
 
-- Heading: `Your next steps`
-- Render action checklist immediately after the best card.
+- Show `Why this card` immediately after the recommended-card hero.
+- The result overview should act as a mobile hub, not a long page with every section expanded.
+- Use tappable section cards for:
+  - `12-month switch plan`
+  - `Switching checklist`
+  - `Card history impact` when present
+  - `Review before applying` when warnings exist
+  - `Alternative offers`
+  - `Caution cards`
+- Tapping a section card navigates to a dedicated detail screen; the top back control returns to the overview.
+- The `12-month switch plan` detail screen shows:
+  - Today: verify terms and apply.
+  - Months 1-3: meet minimum spend, adjusted by the offer spend window.
+  - Month 4: confirm the bonus posted.
+  - Month 11: review before annual fee renewal.
+  - Month 12: rerun the assistant.
+- Use stacked numbered timeline cards, not uneven circular markers or a dense vertical line.
+- Include clear copy that the MVP recommends one immediate card only.
+- `Switching checklist` renders the backend action checklist on its own detail screen.
 - The spend requirement item should be visually prominent.
 
 Explanation section:
@@ -258,13 +275,13 @@ Card-history impact section:
 
 Alternatives section:
 
-- Lower priority than checklist and reasons.
+- Lower priority than the recommended card and reasons.
 - Show up to three alternative cards.
-- Use compact cards.
+- Use compact cards on the alternatives detail screen.
 
 Caution cards section:
 
-- Collapsed or visually de-emphasised if many cards exist.
+- Only show from a caution-cards section card on the result overview.
 - Explain that these are cards not selected because of eligibility, spend, or review cautions.
 
 Disclaimer:

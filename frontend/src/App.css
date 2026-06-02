@@ -565,6 +565,51 @@ button.profile-tile {
   gap: 24px;
 }
 
+.result-nav-list {
+  display: grid;
+  gap: 12px;
+}
+
+.result-nav-card {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  width: 100%;
+  border: 1px solid #3a3a3a;
+  border-radius: 16px;
+  padding: 16px;
+  background: #000000;
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+}
+
+.result-nav-card span {
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.result-nav-card h3 {
+  margin-top: 8px;
+}
+
+.result-nav-card p {
+  margin-top: 5px;
+  color: #9a9a9a;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.result-nav-card b {
+  align-self: center;
+  color: #ffffff;
+  font-size: 26px;
+  font-weight: 300;
+}
+
 .offer-card {
   border: 1px solid #3a3a3a;
   border-radius: 16px;
@@ -595,6 +640,13 @@ button.profile-tile {
   font-weight: 300;
   letter-spacing: -0.05em;
   line-height: 1.08;
+}
+
+.switch-summary {
+  margin-top: 12px;
+  color: #3f3f3f;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .metadata-grid {
@@ -682,7 +734,8 @@ button.profile-tile {
 }
 
 .checklist-item p,
-.due-date {
+.due-date,
+.timeline-item p {
   display: block;
   margin-top: 5px;
   color: #9a9a9a;
@@ -692,6 +745,44 @@ button.profile-tile {
 
 .due-date {
   color: #f6aa45;
+}
+
+.timeline-list {
+  display: grid;
+  gap: 12px;
+}
+
+.timeline-item {
+  display: grid;
+  grid-template-columns: 42px 1fr;
+  align-items: start;
+  gap: 14px;
+  border: 1px solid #3a3a3a;
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.timeline-index {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 1px solid #f6aa45;
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 12px;
+}
+
+.timeline-marker {
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.timeline-marker + h3 {
+  margin-top: 6px;
 }
 
 .compact-card {
