@@ -12,9 +12,10 @@ import type {
   UserCardHistoryItem,
 } from './types'
 
-type AppView = 'wizard' | 'profile' | 'cardHistory' | 'issuerPicker'
+type AppView = 'wizard' | 'profile' | 'cardHistory' | 'issuerPicker' | 'preferences' | 'latestRecommendation' | 'aboutEstimate'
 type CardHistoryReturnView = 'wizard' | 'profile'
-type ResultDetailView = 'overview' | 'timeline' | 'checklist' | 'historyImpact' | 'warnings' | 'alternatives' | 'caution'
+type ResultDetailView = 'overview' | 'timeline' | 'checklist' | 'historyImpact' | 'warnings' | 'alternatives' | 'caution' | 'candidate'
+type CandidateReturnView = 'alternatives' | 'caution'
 
 type WizardStep =
   | 'intro'
@@ -141,6 +142,8 @@ function App() {
   const [reviewEditStep, setReviewEditStep] = useState<WizardStep | null>(null)
   const [roadmap, setRoadmap] = useState<RecommendationRoadmap | null>(null)
   const [resultDetail, setResultDetail] = useState<ResultDetailView>('overview')
+  const [selectedCandidate, setSelectedCandidate] = useState<RecommendationCandidate | null>(null)
+  const [candidateReturnView, setCandidateReturnView] = useState<CandidateReturnView>('alternatives')
   const [error, setError] = useState<string | null>(null)
   const [fieldError, setFieldError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
@@ -166,6 +169,12 @@ function App() {
 
   function handleTopbarBack() {
     if (view === 'wizard' && roadmap && resultDetail !== 'overview') {
+      if (resultDetail === 'candidate') {
+        setSelectedCandidate(null)
+        setResultDetail(candidateReturnView)
+        return
+      }
+      setSelectedCandidate(null)
       setResultDetail('overview')
       return
     }
@@ -175,6 +184,10 @@ function App() {
     }
     if (view === 'cardHistory') {
       setView(cardHistoryReturnView)
+      return
+    }
+    if (view === 'preferences' || view === 'latestRecommendation' || view === 'aboutEstimate') {
+      setView('profile')
       return
     }
     if (view === 'profile') {
@@ -188,6 +201,7 @@ function App() {
     setForm(initialForm)
     setRoadmap(null)
     setResultDetail('overview')
+    setSelectedCandidate(null)
     setError(null)
     setFieldError(null)
     setIsLoading(false)
@@ -218,6 +232,12 @@ function App() {
     setCardDraft((current) => ({ ...current, issuer }))
     setCardDraftError(null)
     setView('cardHistory')
+  }
+
+  function openCandidateDetail(candidate: RecommendationCandidate, returnView: CandidateReturnView) {
+    setSelectedCandidate(candidate)
+    setCandidateReturnView(returnView)
+    setResultDetail('candidate')
   }
 
   function continueFromMaxFee() {
@@ -257,6 +277,7 @@ function App() {
       const nextRoadmap = await createRecommendation(input)
       setRoadmap(nextRoadmap)
       setResultDetail('overview')
+      setSelectedCandidate(null)
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : 'Could not create recommendation.')
     } finally {
@@ -283,8 +304,31 @@ function App() {
       </header>
 
       {view === 'profile' ? (
-        <ProfileScreen cardHistoryCount={cardHistory.length} roadmap={roadmap} onOpenCardHistory={() => openCardHistory('profile')} />
+        <ProfileScreen
+          form={form}
+          cardHistoryCount={cardHistory.length}
+          roadmap={roadmap}
+          onOpenCardHistory={() => openCardHistory('profile')}
+          onOpenPreferences={() => setView('preferences')}
+          onOpenLatestRecommendation={() => setView('latestRecommendation')}
+          onOpenAboutEstimate={() => setView('aboutEstimate')}
+        />
       ) : null}
+
+      {view === 'preferences' ? <PreferencesScreen form={form} cardHistoryCount={cardHistory.length} /> : null}
+
+      {view === 'latestRecommendation' ? (
+        <LatestRecommendationScreen
+          roadmap={roadmap}
+          onOpenResult={() => {
+            setResultDetail('overview')
+            setView('wizard')
+          }}
+          onOpenWizard={() => setView('wizard')}
+        />
+      ) : null}
+
+      {view === 'aboutEstimate' ? <AboutEstimateScreen /> : null}
 
       {view === 'cardHistory' ? (
         <CardHistoryScreen
@@ -309,6 +353,8 @@ function App() {
           roadmap={roadmap}
           resultDetail={resultDetail}
           setResultDetail={setResultDetail}
+          selectedCandidate={selectedCandidate}
+          openCandidateDetail={openCandidateDetail}
           onStartOver={startOver}
           onOpenProfile={() => setView('profile')}
         />
@@ -561,13 +607,21 @@ function WizardScreen({
 }
 
 function ProfileScreen({
+  form,
   cardHistoryCount,
   roadmap,
   onOpenCardHistory,
+  onOpenPreferences,
+  onOpenLatestRecommendation,
+  onOpenAboutEstimate,
 }: {
+  form: FormState
   cardHistoryCount: number
   roadmap: RecommendationRoadmap | null
   onOpenCardHistory: () => void
+  onOpenPreferences: () => void
+  onOpenLatestRecommendation: () => void
+  onOpenAboutEstimate: () => void
 }) {
   return (
     <section className="screen profile-screen">
@@ -582,22 +636,139 @@ function ProfileScreen({
           <small>{cardHistoryCount === 0 ? 'No cards added' : `${cardHistoryCount} saved`}</small>
           <b>→</b>
         </button>
-        <div className="profile-tile profile-tile-muted">
+        <button className="profile-tile" type="button" onClick={onOpenPreferences}>
           <span>Preferences</span>
-          <small>Set during the wizard</small>
-          <b>·</b>
-        </div>
-        <div className="profile-tile profile-tile-muted">
+          <small>{form.optimisationGoal ? labelForGoal(form.optimisationGoal) : 'Set during the wizard'}</small>
+          <b>→</b>
+        </button>
+        <button className="profile-tile" type="button" onClick={onOpenLatestRecommendation}>
           <span>Latest recommendation</span>
           <small>{roadmap?.bestRecommendation?.offer.cardName ?? 'No result yet'}</small>
-          <b>·</b>
-        </div>
-        <div className="profile-tile profile-tile-muted">
+          <b>→</b>
+        </button>
+        <button className="profile-tile" type="button" onClick={onOpenAboutEstimate}>
           <span>About this estimate</span>
           <small>Curated offers, simplified assumptions, not financial advice</small>
-          <b>·</b>
-        </div>
+          <b>→</b>
+        </button>
       </div>
+    </section>
+  )
+}
+
+function PreferencesScreen({ form, cardHistoryCount }: { form: FormState; cardHistoryCount: number }) {
+  return (
+    <section className="screen profile-detail-screen">
+      <div>
+        <p className="eyebrow">Preferences</p>
+        <h1>Your recommendation inputs</h1>
+        <p className="hero-copy">These are the latest answers the assistant will use when scanning active offers.</p>
+      </div>
+      <div className="review-stack">
+        <ReviewSection title="Goal">
+          <ReviewRow label="Optimising for" value={labelForGoal(form.optimisationGoal)} />
+        </ReviewSection>
+        <ReviewSection title="Spend">
+          <ReviewRow label="Monthly card spend" value={form.monthlySpendLabel ?? 'Not selected'} />
+          <ReviewRow label="Large purchases" value={form.largePurchasesLabel ?? 'Not selected'} />
+        </ReviewSection>
+        <ReviewSection title="Preferences">
+          <ReviewRow label="Annual fee" value={labelForFee(form.annualFeePreference)} />
+          {form.annualFeePreference === 'strict_max' ? <ReviewRow label="Fee limit" value={formatDollars(form.maxAnnualFeeDollars)} /> : null}
+          <ReviewRow label="Amex" value={form.acceptsAmex === undefined ? 'Not selected' : form.acceptsAmex ? 'Included' : 'Excluded'} />
+        </ReviewSection>
+        <ReviewSection title="Eligibility history">
+          <ReviewRow label="Card history" value={cardHistoryCount === 0 ? 'None added' : `${cardHistoryCount} saved`} />
+        </ReviewSection>
+      </div>
+      <p className="review-note">To change these answers, run a new scan and adjust them from the review step before submitting.</p>
+    </section>
+  )
+}
+
+function LatestRecommendationScreen({
+  roadmap,
+  onOpenResult,
+  onOpenWizard,
+}: {
+  roadmap: RecommendationRoadmap | null
+  onOpenResult: () => void
+  onOpenWizard: () => void
+}) {
+  const best = roadmap?.bestRecommendation
+  return (
+    <section className="screen profile-detail-screen">
+      <div>
+        <p className="eyebrow">Latest recommendation</p>
+        <h1>{best ? 'Your latest card pick' : 'No recommendation yet'}</h1>
+        <p className="hero-copy">
+          {best ? 'Return to the latest result screen or rescan when your card history, spend, or active offers change.' : 'Complete the wizard to scan active offers and save a latest recommendation.'}
+        </p>
+      </div>
+      {best ? (
+        <section className="latest-recommendation-card">
+          <span className="pill pill-hot">LATEST PICK</span>
+          <div className="latest-card-header">
+            <CardVisual issuer={best.offer.issuer} rewardType={best.offer.rewardType} size="small" />
+            <div>
+              <h2>{best.offer.cardName}</h2>
+              <p>{best.offer.issuer}</p>
+            </div>
+          </div>
+          <p className="latest-value">{formatCents(best.valueBreakdown.netEstimatedValueCents)} estimated year-one value</p>
+          <div className="metadata-grid">
+            <span>{best.offer.signupBonusPoints.toLocaleString('en-AU')} points</span>
+            <span>{formatCents(best.offer.minimumSpendCents)} spend</span>
+            <span>{formatCents(best.offer.annualFeeCents)} fee</span>
+          </div>
+          <button className="primary-button" type="button" onClick={onOpenResult}>
+            View full result
+          </button>
+          <p className="small-copy">Rerun the assistant after the bonus posts or your card history changes.</p>
+        </section>
+      ) : (
+        <section className="empty-state-card">
+          <span className="pill">NO RESULT YET</span>
+          <h2>Scan active offers when you are ready.</h2>
+          <p>Once you complete the wizard, your latest recommendation will appear here.</p>
+          <button className="primary-button" type="button" onClick={onOpenWizard}>
+            Start scan
+          </button>
+        </section>
+      )}
+    </section>
+  )
+}
+
+function AboutEstimateScreen() {
+  return (
+    <section className="screen profile-detail-screen">
+      <div>
+        <p className="eyebrow">About this estimate</p>
+        <h1>How the assistant ranks offers</h1>
+        <p className="hero-copy">The recommendation is an estimate built from curated offer data and your self-reported inputs.</p>
+      </div>
+      <section className="section-block">
+        <h2>What it uses</h2>
+        <ListItems
+          items={[
+            'Your reward goal, spend range, large-purchase estimate, annual-fee preference, Amex preference, and card history.',
+            'Curated card-offer data including bonus value, required spend, annual fee, travel credits, and eligibility rules.',
+            'Conservative spend thresholds so tight minimum-spend offers are treated carefully.',
+          ]}
+        />
+      </section>
+      <section className="section-block">
+        <h2>What it does not do</h2>
+        <ListItems
+          items={[
+            'It does not link bank accounts, run a credit check, or prove issuer eligibility.',
+            'It does not include every possible redemption strategy or live offer change.',
+            'It focuses on the next best card. Rerun the assistant after your bonus posts or your card history changes.',
+          ]}
+        />
+      </section>
+      <p className="disclaimer">This tool provides estimates based on curated offer data and simplified assumptions. It is not financial advice.</p>
     </section>
   )
 }
@@ -905,12 +1076,16 @@ function RoadmapView({
   roadmap,
   resultDetail,
   setResultDetail,
+  selectedCandidate,
+  openCandidateDetail,
   onStartOver,
   onOpenProfile,
 }: {
   roadmap: RecommendationRoadmap
   resultDetail: ResultDetailView
   setResultDetail: (view: ResultDetailView) => void
+  selectedCandidate: RecommendationCandidate | null
+  openCandidateDetail: (candidate: RecommendationCandidate, returnView: CandidateReturnView) => void
   onStartOver: () => void
   onOpenProfile: () => void
 }) {
@@ -943,6 +1118,8 @@ function RoadmapView({
         warnings={warnings}
         alternatives={alternatives}
         cautionCards={cautionCards}
+        selectedCandidate={selectedCandidate}
+        openCandidateDetail={openCandidateDetail}
       />
     )
   }
@@ -1029,6 +1206,8 @@ function ResultDetailScreen({
   warnings,
   alternatives,
   cautionCards,
+  selectedCandidate,
+  openCandidateDetail,
 }: {
   view: ResultDetailView
   roadmap: RecommendationRoadmap
@@ -1037,7 +1216,17 @@ function ResultDetailScreen({
   warnings: string[]
   alternatives: RecommendationCandidate[]
   cautionCards: RecommendationCandidate[]
+  selectedCandidate: RecommendationCandidate | null
+  openCandidateDetail: (candidate: RecommendationCandidate, returnView: CandidateReturnView) => void
 }) {
+  if (view === 'candidate') {
+    return (
+      <section className="screen results-stack">
+        {selectedCandidate ? <CandidateDetail candidate={selectedCandidate} /> : <p className="helper-copy">No card selected.</p>}
+      </section>
+    )
+  }
+
   if (view === 'timeline') {
     return (
       <section className="screen results-stack">
@@ -1076,7 +1265,12 @@ function ResultDetailScreen({
   if (view === 'alternatives') {
     return (
       <section className="screen results-stack">
-        <CandidateList title="Alternative offers" intro="Keep these lower priority unless the top card no longer fits after checking issuer terms." candidates={alternatives} />
+        <CandidateList
+          title="Alternative offers"
+          intro="Keep these lower priority unless the top card no longer fits after checking issuer terms. Tap a card to inspect the breakdown."
+          candidates={alternatives}
+          onSelect={(candidate) => openCandidateDetail(candidate, 'alternatives')}
+        />
       </section>
     )
   }
@@ -1085,9 +1279,10 @@ function ResultDetailScreen({
     <section className="screen results-stack">
       <CandidateList
         title="Caution cards"
-        intro="Not selected because of eligibility, spend, or manual-review cautions."
+        intro="Not selected because of eligibility, spend, or manual-review cautions. Tap a card to inspect the breakdown."
         candidates={cautionCards}
         caution
+        onSelect={(candidate) => openCandidateDetail(candidate, 'caution')}
       />
     </section>
   )
@@ -1113,7 +1308,7 @@ function SwitchingChecklist({ items }: { items: NonNullable<RecommendationRoadma
         <h1>Switching checklist</h1>
         <span className="pill">NEXT ACTIONS</span>
       </div>
-      <p className="small-copy">Use this as a one-card plan. The MVP is not sequencing multiple churn moves yet.</p>
+      <p className="small-copy">This plan focuses on your next best card. Rerun the assistant after the bonus posts or your card history changes.</p>
       <div className="checklist">
         {items.map((item) => (
           <article className={`checklist-item ${item.kind === 'meet_spend' ? 'checklist-item-primary' : ''}`} key={`${item.kind}-${item.title}`}>
@@ -1254,11 +1449,13 @@ function CandidateList({
   intro,
   candidates,
   caution = false,
+  onSelect,
 }: {
   title: string
   intro?: string
   candidates: RecommendationCandidate[]
   caution?: boolean
+  onSelect?: (candidate: RecommendationCandidate) => void
 }) {
   if (candidates.length === 0) {
     return null
@@ -1270,25 +1467,100 @@ function CandidateList({
       {intro ? <p className="helper-copy small-copy">{intro}</p> : null}
       <div className="compact-list">
         {candidates.map((candidate) => (
-          <article className="offer-card compact-card" key={`${candidate.offer.issuer}-${candidate.offer.cardName}`}>
+          <button
+            className={`offer-card compact-card ${onSelect ? 'compact-card-button' : ''}`}
+            key={`${candidate.offer.issuer}-${candidate.offer.cardName}`}
+            type="button"
+            onClick={() => onSelect?.(candidate)}
+          >
             <span className={`pill ${caution ? 'pill-hot' : ''}`}>
               {caution ? 'CAUTION' : `RANK ${candidate.rank}`}
             </span>
             <div className="compact-card-header">
               <CardVisual issuer={candidate.offer.issuer} rewardType={candidate.offer.rewardType} size="small" />
               <div>
-                <h3>{candidate.offer.cardName}</h3>
-                <p>{candidate.offer.issuer}</p>
+                <span className="compact-card-title">{candidate.offer.cardName}</span>
+                <span className="compact-card-issuer">{candidate.offer.issuer}</span>
               </div>
             </div>
             <div className="metadata-grid">
               <span>{formatCents(candidate.valueBreakdown.netEstimatedValueCents)} value</span>
               <span>{formatRewardType(candidate.offer.rewardType)}</span>
             </div>
-          </article>
+          </button>
         ))}
       </div>
     </section>
+  )
+}
+
+function CandidateDetail({ candidate }: { candidate: RecommendationCandidate }) {
+  const { offer, valueBreakdown, spendRequirement } = candidate
+
+  return (
+    <section className="candidate-detail">
+      <div>
+        <p className="eyebrow">Card breakdown</p>
+        <h1>{offer.cardName}</h1>
+        <p className="hero-copy">{offer.issuer}</p>
+      </div>
+
+      <article className="offer-card candidate-detail-card">
+        <CardVisual issuer={offer.issuer} rewardType={offer.rewardType} size="large" />
+        <p className="value-statement">{formatCents(valueBreakdown.netEstimatedValueCents)} estimated year-one value</p>
+        <div className="metadata-grid">
+          <span>{offer.signupBonusPoints.toLocaleString('en-AU')} points</span>
+          <span>{formatRewardType(offer.rewardType)}</span>
+          <span>{formatCents(offer.annualFeeCents)} fee</span>
+          <span>{spendRequirement.difficulty}</span>
+        </div>
+      </article>
+
+      <section className="section-block breakdown-block">
+        <h2>Value breakdown</h2>
+        <BreakdownRow label="Bonus value" value={formatCents(valueBreakdown.signupBonusValueCents)} />
+        <BreakdownRow label="Travel credit" value={formatCents(valueBreakdown.travelCreditValueCents)} />
+        <BreakdownRow label="Annual fee" value={`-${formatCents(valueBreakdown.annualFeeCents)}`} />
+        <BreakdownRow label="Net estimate" value={formatCents(valueBreakdown.netEstimatedValueCents)} strong />
+      </section>
+
+      <section className="section-block breakdown-block">
+        <h2>Spend fit</h2>
+        <BreakdownRow label="Required spend" value={formatCents(spendRequirement.minimumSpendCents)} />
+        <BreakdownRow label="Projected spend" value={formatCents(spendRequirement.projectedUserSpendCents)} />
+        <BreakdownRow label="Window" value={`${spendRequirement.spendWindowDays} days`} />
+        <BreakdownRow label="Difficulty" value={spendRequirement.difficulty} strong />
+        <p className="small-copy">{spendRequirement.reason}</p>
+      </section>
+
+      <section className="section-block">
+        <h2>Why it ranked here</h2>
+        <ListItems items={candidate.reasons} />
+      </section>
+
+      {(candidate.warnings ?? []).length > 0 ? (
+        <section className="section-block warning-block">
+          <h2>Review before applying</h2>
+          <ListItems items={candidate.warnings} tone="warning" />
+        </section>
+      ) : null}
+
+      {(offer.termsSummary ?? []).length > 0 ? (
+        <section className="section-block">
+          <h2>Terms snapshot</h2>
+          <ListItems items={offer.termsSummary} />
+        </section>
+      ) : null}
+    </section>
+  )
+}
+
+function BreakdownRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`breakdown-row ${strong ? 'breakdown-row-strong' : ''}`}>
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
   )
 }
 
@@ -1392,6 +1664,15 @@ function Progress({
   }
   if (view === 'issuerPicker') {
     return <span className="pill pill-warm">ISSUER</span>
+  }
+  if (view === 'preferences') {
+    return <span className="pill pill-warm">INPUTS</span>
+  }
+  if (view === 'latestRecommendation') {
+    return <span className="pill pill-warm">LATEST</span>
+  }
+  if (view === 'aboutEstimate') {
+    return <span className="pill pill-warm">ABOUT</span>
   }
   if (roadmap) {
     return <span className="pill pill-warm">RESULT</span>

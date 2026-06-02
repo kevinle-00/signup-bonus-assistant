@@ -595,6 +595,15 @@ h3 {
   font-size: 14px;
 }
 
+.review-section-card .review-row {
+  border-bottom: 1px solid #222222;
+  padding: 12px 14px;
+}
+
+.review-section-card .review-row:last-child {
+  border-bottom: 0;
+}
+
 .review-row strong {
   color: #ffffff;
   font-weight: 400;
@@ -603,7 +612,8 @@ h3 {
 
 .profile-screen,
 .card-history-screen,
-.issuer-picker-screen {
+.issuer-picker-screen,
+.profile-detail-screen {
   gap: 24px;
 }
 
@@ -657,6 +667,43 @@ button.profile-tile {
 
 .profile-tile-muted {
   opacity: 0.72;
+}
+
+.latest-recommendation-card,
+.empty-state-card {
+  display: grid;
+  gap: 16px;
+  border: 1px solid #3a3a3a;
+  border-radius: 18px;
+  padding: 16px;
+  background: #000000;
+}
+
+.latest-card-header {
+  display: grid;
+  grid-template-columns: 68px 1fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.latest-card-header p {
+  margin-top: 6px;
+  color: #9a9a9a;
+  font-size: 14px;
+}
+
+.latest-value {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 300;
+  letter-spacing: -0.05em;
+  line-height: 1.08;
+}
+
+.empty-state-card p {
+  color: #9a9a9a;
+  font-size: 14px;
+  line-height: 1.45;
 }
 
 .history-card {
@@ -817,9 +864,32 @@ button.profile-tile {
 }
 
 .issuer-name,
-.compact-card p {
+.compact-card-issuer {
   margin-top: 6px;
   color: #777777;
+}
+
+.compact-card-button {
+  width: 100%;
+  background: transparent;
+  color: #ffffff;
+  font: inherit;
+  text-align: left;
+}
+
+.compact-card-title,
+.compact-card-issuer {
+  display: block;
+}
+
+.compact-card-title {
+  color: #ffffff;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+.compact-card-issuer {
+  font-size: 14px;
 }
 
 .value-statement {
@@ -983,6 +1053,49 @@ button.profile-tile {
   grid-template-columns: 68px 1fr;
   align-items: center;
   gap: 14px;
+}
+
+.candidate-detail {
+  display: grid;
+  gap: 24px;
+}
+
+.candidate-detail-card {
+  display: grid;
+  gap: 16px;
+}
+
+.breakdown-block {
+  gap: 0;
+}
+
+.breakdown-block h2 {
+  margin-bottom: 10px;
+}
+
+.breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid #222222;
+  padding: 11px 0;
+  color: #9a9a9a;
+  font-size: 14px;
+}
+
+.breakdown-row:last-of-type {
+  border-bottom: 0;
+}
+
+.breakdown-row strong {
+  color: #ffffff;
+  font-weight: 400;
+  text-align: right;
+  text-transform: capitalize;
+}
+
+.breakdown-row-strong strong {
+  color: #f6aa45;
 }
 
 .card-visual {
