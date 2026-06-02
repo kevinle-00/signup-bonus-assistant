@@ -104,11 +104,41 @@ API errors now use:
 Current error codes:
 
 - `invalid_request`
+- `cors_origin_forbidden`
 - `card_offers_unavailable`
 - `recommendation_failed`
 - `recommendation_run_persist_failed`
 
 The frontend API client accepts this structured shape and still tolerates the old string shape as a fallback.
+
+## API Hardening
+
+The API is production-minded, though not fully production-ready.
+
+Current hardening:
+
+- Graceful shutdown on interrupt/SIGTERM.
+- HTTP server timeouts:
+  - `ReadHeaderTimeout`: 5 seconds.
+  - `ReadTimeout`: 10 seconds.
+  - `WriteTimeout`: 30 seconds.
+  - `IdleTimeout`: 60 seconds.
+- 1 MiB JSON request body cap on `POST /api/recommendations`.
+- Unknown JSON fields are rejected on recommendation requests.
+- Configurable CORS allow-list via `CORS_ALLOWED_ORIGINS`.
+- Security headers:
+  - `X-Content-Type-Options: nosniff`
+  - `X-Frame-Options: DENY`
+  - `Referrer-Policy: no-referrer`
+- Request logging with method, path, status, and duration.
+
+CORS defaults to local Vite origins:
+
+```text
+CORS_ALLOWED_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
+```
+
+Production deployments should set this to the exact deployed frontend origin. Use `*` only for a deliberately public API surface.
 
 ## Testing
 
@@ -122,6 +152,8 @@ Covered:
 - `POST /api/recommendations` persistence failure returns a structured error.
 - Invalid JSON/input returns `invalid_request`.
 - Offer-loading failure returns `card_offers_unavailable`.
+- CORS allows configured origins and rejects disallowed preflight requests.
+- Security headers are added by middleware.
 
 ## Verification
 

@@ -37,10 +37,18 @@ func main() {
 	cardOffers := repositories.NewPostgresCardOfferRepository(pool)
 	recommendationRuns := repositories.NewPostgresRecommendationRunRepository(pool)
 	handler := api.NewHandler(cardOffers, recommendationRuns)
+	routes := handler.Routes()
+	routes = api.WithCORS(routes, cfg.CORSAllowedOrigins)
+	routes = api.WithSecurityHeaders(routes)
+	routes = api.WithRequestLogging(routes, logger)
 	server := &http.Server{
 		Addr:              cfg.APIAddr,
-		Handler:           handler.Routes(),
+		Handler:           routes,
 		ReadHeaderTimeout: 5 * time.Second,
+		ReadTimeout:       10 * time.Second,
+		WriteTimeout:      30 * time.Second,
+		IdleTimeout:       60 * time.Second,
+		MaxHeaderBytes:    1 << 20,
 	}
 
 	go func() {
@@ -52,7 +60,7 @@ func main() {
 	}()
 
 	<-ctx.Done()
-	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	if err := server.Shutdown(shutdownCtx); err != nil {
 		logger.Error("shutdown server", "error", err)
