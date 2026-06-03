@@ -11,7 +11,7 @@ Implemented:
 - Typed API client for `POST /api/recommendations`.
 - Vite proxy from `/api` and `/health` to the Go backend.
 - Roadmap rendering for best card, reasons, warnings, checklist, alternatives, and caution cards.
-- Dark mobile-first styling based on `docs/frontend-design-guide.md`.
+- Dark mobile-first styling based on `docs/archive/frontend-design-guide.md`.
 
 Out of scope:
 
@@ -46,7 +46,7 @@ Open the Vite URL and submit the form. The browser calls `/api/recommendations`,
 
 ## Design Direction
 
-The UI follows the reference screenshots in `docs/design-reference/`:
+The UI follows the reference screenshots in `docs/archive/design-reference/`:
 
 - black app shell
 - white primary text

@@ -1,6 +1,8 @@
 # Frontend
 
-Vite + React + TypeScript smoke UI for the Signup Bonus Assistant.
+React + TypeScript + Vite frontend for Points Hacking Assistant.
+
+The UI is a mobile-first guided flow that collects a user's recommendation inputs, submits them to the Go API, and renders the returned roadmap, checklist, alternatives, and caution cards.
 
 ## Run Locally
 
@@ -13,7 +15,7 @@ go run ./cmd/api
 Then start the frontend from `frontend/`:
 
 ```sh
-npm install
+npm ci
 npm run dev
 ```
 
@@ -26,13 +28,9 @@ npm run build
 npm run lint
 ```
 
-## Scope
+## Notes
 
-This is a smoke-test UI, not the final product interface. It proves:
-
-- form input works
-- `POST /api/recommendations` works from the browser
-- roadmap rendering works
-- best card, alternatives, caution cards, reasons, warnings, and checklist can be displayed
-
-The visual direction follows `docs/frontend-design-guide.md` and the screenshots in `docs/design-reference/`.
+- Recommendation ranking belongs to the backend; the frontend only renders the returned roadmap.
+- Profile and card-history state is local browser state for this take-home MVP.
+- The UI uses generic card visuals rather than real bank logos or card art.
+- See `../docs/architecture-and-design.md` for the product and UX decisions.

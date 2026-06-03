@@ -5,7 +5,7 @@
 The current design references live in:
 
 ```text
-docs/design-reference/
+docs/archive/design-reference/
 ```
 
 They appear to come from the same startup's mortgage and utility products, so the credit-card assistant should reuse the same visual language rather than inventing a new one.

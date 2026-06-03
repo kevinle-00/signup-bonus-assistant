@@ -8,7 +8,7 @@ The current single-page form is only a test harness. Slice 6 should replace it w
 
 ## Design Constraint
 
-Use `docs/design-reference/Form wizard.png` as the primary interaction reference.
+Use `docs/archive/design-reference/Form wizard.png` as the primary interaction reference.
 
 Important traits to preserve:
 

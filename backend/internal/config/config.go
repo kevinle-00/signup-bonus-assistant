@@ -18,7 +18,7 @@ func Load() (Config, error) {
 
 	cfg := Config{
 		DatabaseURL:        os.Getenv("DATABASE_URL"),
-		APIAddr:            getenvDefault("API_ADDR", ":8080"),
+		APIAddr:            apiAddrFromEnv(),
 		CORSAllowedOrigins: splitCSV(getenvDefault("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://127.0.0.1:5173")),
 	}
 
@@ -27,6 +27,21 @@ func Load() (Config, error) {
 	}
 
 	return cfg, nil
+}
+
+func apiAddrFromEnv() string {
+	if apiAddr := os.Getenv("API_ADDR"); apiAddr != "" {
+		return apiAddr
+	}
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		return ":8080"
+	}
+	if strings.HasPrefix(port, ":") {
+		return port
+	}
+	return ":" + port
 }
 
 func getenvDefault(key string, fallback string) string {

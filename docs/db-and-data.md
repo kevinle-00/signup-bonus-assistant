@@ -1,4 +1,4 @@
-# Database And Data
+# Database and Data
 
 ## Purpose
 
@@ -81,7 +81,7 @@ cashback: face value
 travel_credit: face value
 ```
 
-These are MVP assumptions, not financial advice. The backend recommendation logic should keep the same assumptions explicit and testable when value calculation is implemented.
+These are MVP assumptions, not financial advice. The backend recommendation logic keeps matching assumptions in `backend/internal/recommendations/value.go`.
 
 ## Local Runtime Flow
 
