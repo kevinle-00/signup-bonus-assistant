@@ -418,8 +418,12 @@ function WizardScreen({
   if (step === 'intro') {
     return (
       <section className="screen intro-screen">
-        <span className="pill pill-warm">POINTS ENGINE</span>
         <div>
+          <div className="intro-signal-row" aria-label="Recommendation signals">
+            <span>Spend fit</span>
+            <span>Eligibility</span>
+            <span>Net value</span>
+          </div>
           <h1>Find your next best credit card bonus</h1>
           <p className="hero-copy">
             Answer a few questions and we’ll estimate which sign-up bonus is worth targeting next.

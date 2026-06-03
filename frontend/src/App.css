@@ -160,6 +160,25 @@ button:disabled {
   align-content: space-between;
 }
 
+.intro-signal-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.intro-signal-row span {
+  border: 1px solid rgba(246, 170, 69, 0.42);
+  border-radius: 999px;
+  padding: 7px 10px;
+  color: #f6aa45;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
 .question-screen {
   grid-template-rows: auto auto 1fr;
 }
