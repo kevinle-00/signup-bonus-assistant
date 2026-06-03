@@ -944,6 +944,19 @@ button.profile-tile {
   text-transform: uppercase;
 }
 
+.why-summary-block {
+  border-color: rgba(62, 201, 122, 0.58);
+  background: rgba(62, 201, 122, 0.07);
+}
+
+.why-summary-block .quiet-meta {
+  color: #65e49d;
+}
+
+.why-summary-block .reason-list li {
+  border-left-color: #65e49d;
+}
+
 .reason-list {
   display: grid;
   gap: 12px;

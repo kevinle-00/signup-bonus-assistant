@@ -15,7 +15,7 @@ The assessment should demonstrate:
 - End-to-end ownership
 - Clear trade-off decisions
 
-The goal is **not** to build a full credit card comparison site or a live financial data ingestion platform. The goal is to build a polished, realistic, production-oriented MVP focused on the product’s core user value: helping users decide which credit card sign-up bonus to pursue next and why.
+The goal is **not** to build a full credit card comparison site or a live financial data ingestion platform. The goal is to build a polished, realistic, production-oriented product focused on the core user value: helping users decide which credit card sign-up bonus to pursue next and why.
 
 ---
 
@@ -41,7 +41,7 @@ Many users keep the same credit card for years and miss out on valuable sign-up 
 
 ## 3. Scope
 
-### In scope for MVP
+### In scope
 
 Build a working web application with:
 
@@ -54,7 +54,7 @@ Build a working web application with:
 7. Basic tests around the recommendation logic.
 8. Clear README explaining assumptions, trade-offs, setup, and future improvements.
 
-### Out of scope for MVP
+### Out of scope
 
 Do **not** build:
 
@@ -421,7 +421,7 @@ Fields:
 - currentlyHeldCards: list of issuer/card names
 - recentlyHeldCards: list with issuer/card name and closed date
 
-For MVP, allow simple manual entry rather than autocomplete.
+For this version, allow simple manual entry rather than autocomplete.
 
 Each history item:
 
@@ -509,7 +509,7 @@ Estimated net value:       $650
 
 #### Action checklist
 
-Generate deterministic action items from the selected candidate. Do not use AI-generated prose for the MVP checklist; it should be traceable to card-offer fields and recommendation results.
+Generate deterministic action items from the selected candidate. Do not use AI-generated prose for the checklist; it should be traceable to card-offer fields and recommendation results.
 
 Example actions:
 
@@ -1064,7 +1064,7 @@ Use a simple and explainable formula:
 netEstimatedValue = signupBonusValue + requiredSpendPointsValue + travelCreditValue - annualFee
 ```
 
-For MVP, `requiredSpendPointsValue` can be estimated simply:
+For this version, `requiredSpendPointsValue` can be estimated simply:
 
 ```text
 requiredSpendPointsValue = minimumSpend × approximateEarnRateValue
@@ -1088,7 +1088,7 @@ type ValueBreakdown struct {
 
 `estimatedYearOneValueCents` represents the total projected net value of the recommended 12-month action plan.
 
-For the MVP, the roadmap recommends one immediate card and then asks the user to re-run the assistant later. In that case:
+For this version, the roadmap recommends one immediate card and then asks the user to re-run the assistant later. In that case:
 
 ```text
 estimatedYearOneValueCents = bestRecommendation.valueBreakdown.netEstimatedValueCents
@@ -1176,7 +1176,7 @@ Add an `OPENAI_API_KEY`-guarded endpoint or feature for a natural language expla
 
 The roadmap makes the product feel like an assistant rather than a comparison table.
 
-For MVP, the roadmap recommends one immediate card. It wraps the ranked recommendation result with reasons, warnings, alternatives, caution cards, and an action checklist.
+For this version, the roadmap recommends one immediate card. It wraps the ranked recommendation result with reasons, warnings, alternatives, caution cards, and an action checklist.
 
 The checklist maps roughly to this timeline:
 
@@ -1315,7 +1315,7 @@ Use structured logging in the backend where practical.
 
 ## 18. Security and Privacy Considerations
 
-For MVP:
+For this version:
 
 - Do not collect sensitive personal identity data.
 - Do not ask for income, credit score, address, or banking credentials.
@@ -1337,7 +1337,7 @@ Recommendation run snapshots should include only the fields needed to reproduce 
 
 Do not collect or store names, emails, phone numbers, raw bank statements, exact transaction data, or banking credentials.
 
-No authentication is required for this take-home MVP.
+No authentication is required for this take-home project.
 
 Reasoning:
 
@@ -1349,7 +1349,7 @@ Reasoning:
 
 ## 19. Production-Minded Design Decisions
 
-Even though this is an MVP, include signs of production thinking:
+Include signs of production thinking:
 
 1. Use PostgreSQL instead of a static JSON file for offers.
 2. Keep recommendation logic in backend domain services, not frontend.
@@ -1530,15 +1530,15 @@ Current slices:
    - Run backend and frontend checks plus a final local smoke test.
    - Confirm the project demonstrates product thinking, engineering quality, and AI-assisted execution without unnecessary complexity.
 
-### 23.2 Resolved MVP Contract
+### 23.2 Resolved Product Contract
 
-These decisions guide implementation. The goal is to build a simple, explainable, production-minded MVP that focuses on the recommendation engine, user experience, and decision-making workflow.
+These decisions guide implementation. The goal is to build a simple, explainable, production-minded product that focuses on the recommendation engine, user experience, and decision-making workflow.
 
 Do not over-engineer live data ingestion, scraping, authentication, complex financial modelling, or multi-card sequencing. Use a curated dataset of Australian credit card offers and focus on the core product experience.
 
 #### Product contract
 
-The MVP will help a user answer:
+The app will help a user answer:
 
 ```text
 Which Australian credit card sign-up bonus should I target next, and why?
@@ -1556,13 +1556,13 @@ The app must provide:
 8. A small set of alternatives and caution/ineligible cards.
 9. A clear disclaimer that the result is not financial advice.
 
-For MVP, the roadmap recommends one immediate card. Future versions may recommend multiple cards within a 12-month plan, but multi-card sequencing is not required for this take-home.
+For this version, the roadmap recommends one immediate card. Future versions may recommend multiple cards within a 12-month plan, but multi-card sequencing is not required for this take-home.
 
 #### Resolved value contract
 
 `estimatedYearOneValueCents` represents the total projected net value of the recommended 12-month action plan.
 
-For MVP:
+For this version:
 
 - If only one immediate card is recommended, this equals the best card's net estimated value.
 - It should not represent the total value of every eligible offer, because the user cannot realistically capture every offer at once.
@@ -1597,7 +1597,7 @@ The recommendation engine must be deterministic and testable. It must evaluate:
 6. Estimated net value.
 7. Reward goal match.
 
-Supported MVP optimisation goals:
+Supported optimisation goals:
 
 - `max_net_value`
 - `qantas_points`
@@ -1605,7 +1605,7 @@ Supported MVP optimisation goals:
 - `cashback`
 - `low_effort`
 
-Hardcoded MVP weights are acceptable. The backend should return clear explanation reasons for why a card ranked highly.
+Hardcoded weights are acceptable. The backend should return clear explanation reasons for why a card ranked highly.
 
 Annual fee handling:
 
@@ -1625,7 +1625,7 @@ The frontend must include:
 4. A readable value breakdown.
 5. Reasons, warnings, alternatives, and action plan.
 
-Spending categories may be collected during onboarding, but they should not be central to MVP scoring. For MVP scoring, spend achievability should mainly use:
+Spending categories may be collected during onboarding, but they should not be central to scoring. For scoring, spend achievability should mainly use:
 
 - `monthlySpendCents`
 - `expectedLargePurchasesNext90DaysCents`
@@ -1640,7 +1640,7 @@ Any large purchases expected in the next 3 months?
 
 #### Data contract
 
-The MVP will use curated PostgreSQL seed data with 12-20 representative Australian card offers.
+The app will use curated PostgreSQL seed data with 12-20 representative Australian card offers.
 
 Each offer must include enough structured data to support the recommendation engine:
 
@@ -1667,7 +1667,7 @@ Store a reduced, non-identifying snapshot of each recommendation run. The snapsh
 - `cardHistorySummary`
 - recommendation result
 
-`cardHistorySummary` should be structured data, not free text. For MVP, it should contain issuer, card name, optional opened date, optional closed date, and whether the card is currently held.
+`cardHistorySummary` should be structured data, not free text. For this version, it should contain issuer, card name, optional opened date, optional closed date, and whether the card is currently held.
 
 Do not collect or store personal identifying information such as name, email, phone number, raw bank statements, exact transaction data, or banking credentials.
 
@@ -1693,7 +1693,7 @@ Card offers
 → 12-month roadmap
 ```
 
-The strongest version of this MVP is not the most technically complex version. It is the version that gives the user a clear, trustworthy answer to:
+The strongest version of this product is not the most technically complex version. It is the version that gives the user a clear, trustworthy answer to:
 
 ```text
 What card should I target next, why, and how much value could I get?
@@ -1761,6 +1761,6 @@ This tool provides estimates based on curated offer data and simplified assumpti
 
 ## 26. Final Notes
 
-The project should feel like a real startup MVP: simple infrastructure, strong domain logic, polished UX, and clear trade-offs.
+The project should feel like a real startup product: simple infrastructure, strong domain logic, polished UX, and clear trade-offs.
 
 The most important thing is not to build the most complex system. The most important thing is to demonstrate that the user problem has been understood and translated into a product that gives clear, actionable, trustworthy guidance.

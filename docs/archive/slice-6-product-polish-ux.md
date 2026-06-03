@@ -250,7 +250,7 @@ Primary action section:
   - Month 11: review before annual fee renewal.
   - Month 12: rerun the assistant.
 - Use stacked numbered timeline cards, not uneven circular markers or a dense vertical line.
-- Include clear copy that the MVP recommends one immediate card only.
+- Include clear copy that the app recommends one immediate card only.
 - `Switching checklist` renders the backend action checklist on its own detail screen.
 - The spend requirement item should be visually prominent.
 

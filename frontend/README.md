@@ -31,6 +31,6 @@ npm run lint
 ## Notes
 
 - Recommendation ranking belongs to the backend; the frontend only renders the returned roadmap.
-- Profile and card-history state is local browser state for this take-home MVP.
+- Profile and card-history state is local browser state for this take-home project.
 - The UI uses generic card visuals rather than real bank logos or card art.
 - See `../docs/architecture-and-design.md` for the product and UX decisions.

@@ -100,7 +100,7 @@ Large purchases in the next 90 days:
 - `$3,000-$5,000` → send `$4,000`
 - `$5,000+` → send `$5,000`
 
-Use conservative representative values. Above `$10,000/month`, exact spend does not materially affect the MVP because normal single-card sign-up requirements are already comfortably met.
+Use conservative representative values. Above `$10,000/month`, exact spend does not materially affect the recommendation because normal single-card sign-up requirements are already comfortably met.
 
 Keep it simple:
 
@@ -160,7 +160,7 @@ Add/adjust result copy:
   - Month 11: review before annual fee renewal.
   - Month 12: re-run assistant for next opportunity.
 - Timeline uses consistent numbered cards rather than a vertical line with uneven marker sizes.
-- Clear statement that the MVP recommends one immediate card only.
+- Clear statement that the app recommends one immediate card only.
 - Rename the checklist to `Switching checklist` so it reads as an execution plan, not a generic task list.
 - Keep alternatives below the switch plan and checklist.
 

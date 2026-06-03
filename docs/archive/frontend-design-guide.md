@@ -176,7 +176,7 @@ Use:
 - Rough timing cards for closed-card history instead of exact date/month inputs.
 - Plain card-name text entry, with examples, until a full product catalogue exists.
 - Clear copy that history helps estimate eligibility but does not prove issuer approval.
-- `localStorage` persistence for the no-auth MVP profile.
+- `localStorage` persistence for the no-auth profile.
 - Result copy that calls out when saved history affected eligibility confidence.
 
 Avoid:

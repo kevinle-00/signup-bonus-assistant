@@ -1,76 +1,54 @@
 # Deployment
 
-This project is designed to deploy as two services:
+Current deployment:
 
-- Backend API on Railway.
-- Frontend app on Vercel.
-
-The backend and frontend communicate over HTTP/JSON. The backend owns recommendation ranking; the frontend only renders returned roadmap data.
+- Frontend: https://signup-bonus-assistant.vercel.app/
+- Backend health: https://signup-bonus-assistant-production.up.railway.app/health
 
 ## Railway Backend
 
-Create a Railway service from this repository and set the service root directory to:
+Service root:
 
 ```text
 backend
 ```
 
-Railway should pick up `backend/railway.toml`, which builds the API binary and starts it with:
+Railway uses `backend/railway.toml`:
 
 ```sh
+go build -o bin/api ./cmd/api
 ./bin/api
 ```
 
-The backend supports Railway's injected `PORT` variable. Do not set `API_ADDR` on Railway unless you specifically want to override the bind address.
-
-### Railway Variables
-
-Set these variables on the Railway API service:
+Required variables:
 
 ```text
-DATABASE_URL=<Railway Postgres connection string>
-CORS_ALLOWED_ORIGINS=https://<your-vercel-app>.vercel.app
+DATABASE_URL=<Railway private Postgres URL>
+CORS_ALLOWED_ORIGINS=https://signup-bonus-assistant.vercel.app
 ```
 
-If you use Vercel preview deployments, add any preview origins you want to allow as comma-separated values:
+The backend uses Railway's `PORT` automatically when `API_ADDR` is unset.
 
-```text
-CORS_ALLOWED_ORIGINS=https://<production>.vercel.app,https://<preview>.vercel.app
-```
+## Database Setup
 
-Avoid `*` in production unless you intentionally want the API callable from any browser origin.
-
-### Railway Postgres
-
-Provision a Railway Postgres database and connect it to the API service.
-
-For runtime, Railway's internal/private database URL is preferred. For local migration commands, use a public/external database URL or run the commands through the Railway CLI inside the Railway environment.
-
-## Migrations and Seed Data
-
-Run migrations once after the Railway Postgres database is available:
+Run once against Railway Postgres:
 
 ```sh
-goose -dir backend/migrations postgres "$DATABASE_URL" up
-```
-
-Seed card offers:
-
-```sh
+go run github.com/pressly/goose/v3/cmd/goose@v3.24.3 -dir backend/migrations postgres "$DATABASE_URL" up
 psql "$DATABASE_URL" -f backend/seed/card_offers_seed.sql
 ```
 
-For this MVP, manual migration and seeding is acceptable. A production system should add a dedicated release/migration job so schema changes are applied consistently before new API versions serve traffic.
+Use Railway's public Postgres URL for local setup commands. Use the private Postgres URL for the Railway backend runtime.
 
 ## Vercel Frontend
 
-Create a Vercel project from this repository and set the root directory to:
+Project root:
 
 ```text
 frontend
 ```
 
-Use the detected Vite settings, or configure them manually:
+Build settings:
 
 ```text
 Install Command: npm ci
@@ -78,31 +56,16 @@ Build Command: npm run build
 Output Directory: dist
 ```
 
-Set this Vercel environment variable:
+Required variable:
 
 ```text
-VITE_API_BASE_URL=https://<your-railway-api>.up.railway.app
+VITE_API_BASE_URL=https://signup-bonus-assistant-production.up.railway.app
 ```
 
-Use the Railway API origin only, without a trailing slash. The frontend also trims trailing slashes defensively.
-
-## Deployment Order
-
-1. Provision Railway Postgres.
-2. Deploy the Railway backend with `DATABASE_URL` set.
-3. Run migrations and seed data against Railway Postgres.
-4. Confirm `https://<your-railway-api>/health` returns `{"status":"ok"}`.
-5. Deploy Vercel frontend with `VITE_API_BASE_URL` pointed at Railway.
-6. Add the Vercel production origin to Railway `CORS_ALLOWED_ORIGINS`.
-7. Run the app and create a recommendation through the browser.
-
-## Production Checklist
+## Checklist
 
 - Railway backend root is `backend`.
 - Vercel frontend root is `frontend`.
 - Railway has `DATABASE_URL` and `CORS_ALLOWED_ORIGINS`.
 - Vercel has `VITE_API_BASE_URL`.
-- Railway health check path is `/health`.
-- Migrations have run successfully.
-- `backend/seed/card_offers_seed.sql` has been applied.
-- CORS uses concrete Vercel origins, not `*`.
+- Migrations and seed data have been applied.

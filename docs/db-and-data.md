@@ -8,7 +8,7 @@ The recommendation engine should use structured columns for scoring and JSONB fo
 
 ## Current Database Shape
 
-There are two MVP tables:
+There are two application tables:
 
 - `card_offers`: curated card offers used by the recommendation engine.
 - `recommendation_runs`: reduced snapshots of user inputs and recommendation results.
@@ -81,7 +81,7 @@ cashback: face value
 travel_credit: face value
 ```
 
-These are MVP assumptions, not financial advice. The backend recommendation logic keeps matching assumptions in `backend/internal/recommendations/value.go`.
+These are modelling assumptions, not financial advice. The backend recommendation logic keeps matching assumptions in `backend/internal/recommendations/value.go`.
 
 ## Local Runtime Flow
 

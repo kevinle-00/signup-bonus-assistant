@@ -74,7 +74,7 @@ Implemented concepts:
 - `RecommendationCandidate`: one fully evaluated card offer.
 - `RecommendationResult`: best card, alternatives, caution cards, and summary.
 - `ActionChecklistItem`: one deterministic action for the user.
-- `RecommendationRoadmap`: final single-card MVP plan built from a ranked result.
+- `RecommendationRoadmap`: final single-card plan built from a ranked result.
 
 ## Value Calculation
 
@@ -96,9 +96,9 @@ signupBonusValue = signupBonusPoints × pointValue + cashback
 netEstimatedValue = signupBonusValue + travelCredit - annualFee
 ```
 
-`RequiredSpendPointsValueCents` is deliberately `0` for MVP. Earn rates vary by card, category, caps, exclusions, and government payments. Without richer spend data, including those points would create false precision.
+`RequiredSpendPointsValueCents` is deliberately `0` for this version. Earn rates vary by card, category, caps, exclusions, and government payments. Without richer spend data, including those points would create false precision.
 
-Later bonuses are not included in `CalculateValue`. They are kept in card terms for explanation, but excluded from MVP year-one value unless future roadmap logic explicitly models them.
+Later bonuses are not included in `CalculateValue`. They are kept in card terms for explanation, but excluded from year-one value unless future roadmap logic explicitly models them.
 
 ## Spend Achievability
 
@@ -216,7 +216,7 @@ Ranking is deterministic:
 - Lower annual fee wins further ties.
 - Issuer and card name provide the final stable order.
 
-`BestRecommendation` is the first ranked recommendable candidate. `Alternatives` contains up to three next-best recommendable cards. `Summary.EstimatedYearOneValueCents` is the best card's net estimated value, matching the MVP contract that the first roadmap recommends one immediate card.
+`BestRecommendation` is the first ranked recommendable candidate. `Alternatives` contains up to three next-best recommendable cards. `Summary.EstimatedYearOneValueCents` is the best card's net estimated value, matching the product contract that the first roadmap recommends one immediate card.
 
 ## Action Checklist
 
@@ -234,7 +234,7 @@ Checklist items currently include:
 
 Dates are conservative reminders, not legal deadlines. For example, the minimum-spend due date assumes approval today and should be adjusted once the card is actually approved.
 
-Later bonuses are surfaced as review items only. They remain excluded from MVP year-one value.
+Later bonuses are surfaced as review items only. They remain excluded from year-one value.
 
 ## Roadmap Generation
 
@@ -250,7 +250,7 @@ Later bonuses are surfaced as review items only. They remain excluded from MVP y
 
 If there is no safe best recommendation, the roadmap returns `HasRecommendation = false` and explains that no card is safe enough to recommend from the current inputs. Caution cards are still retained so the UI can explain why tempting cards were not recommended.
 
-The MVP roadmap intentionally recommends one immediate card only. It does not yet sequence multiple cards, model credit-score timing, or produce a long-term points strategy.
+The roadmap intentionally recommends one immediate card only. It does not yet sequence multiple cards, model credit-score timing, or produce a long-term points strategy.
 
 ## In-Memory Service Test
 
